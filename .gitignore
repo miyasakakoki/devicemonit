@@ -1,2 +1,4 @@
 *.pyc
 ./venv/
+./api/__pycache__/
+./misc/
