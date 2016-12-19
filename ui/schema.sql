@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = ON;
+
 drop table if exists User;
 create table User(
 	uid integer primary key autoincrement, 
@@ -13,7 +15,7 @@ create table devices(
 	description text not null,
 	seq integer ,
 	primary key( uid, did ),
-	foreing key( uid ) references( User ) on delete Cascade
+	foreing key( uid ) references User(uid) on delete cascade on update cascade
 );
 
 
