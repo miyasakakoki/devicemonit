@@ -1,2 +1,2 @@
 *.db
-./__pycashe__/
+__pycashe__/
