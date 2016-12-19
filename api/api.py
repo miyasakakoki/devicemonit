@@ -3,6 +3,7 @@
 import falcon
 from influxdb import InfluxDBClient
 import time
+import json
 
 host='localhost'
 port=8086
@@ -38,7 +39,10 @@ class MyAPI( object ):
 		cli = InfluxDBClient( host, port, user, password, dbname )
 		if not existdevice( cli, id ):
 			raise falcon.HTTPNotFound()
-		if not dbwrite( cli, id, 1, {} ):
+		data = json.loads( req.stream.read() )
+		if "num" not in data or type(data["num"]) is not int:
+			raise falcon.HTTPNotFound()
+		if not dbwrite( cli, id, data["num"], {} ):
 			print("miss2")
 		res.status = falcon.HTTP_200
 		res.content_type = 'application/javascript'
