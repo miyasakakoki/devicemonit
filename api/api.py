@@ -2,7 +2,7 @@
 
 import falcon
 from influxdb import InfluxDBClient
-from datetime import datetime
+import time
 
 host='localhost'
 port=8086
@@ -18,7 +18,7 @@ def existdevice( client, measurement ):
 	ret = client.query( "show measurements with measurement = {0};".format(measurement) )
 	return (len( ret.raw ) > 0)
 def dbwrite( client, measurement, value, tag ):
-	timestamp = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+	timestamp = time.time()
 	return client.write_points( [{"measurement":measurement,"tags":tag,"time":timestamp,"fields":{"value":value}}] )
 	
 
