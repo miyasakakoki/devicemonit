@@ -24,7 +24,7 @@ class MyAPI( object ):
 	def on_get( self, req, res, id ):
 		#Connect to Database
 		cli = InfluxDBClient( host, port, user, password, dbname )
-		if !(existdevice( cli, id )):
+		if not existdevice( cli, id ):
 			raise falcon.HTTPNotFound()
 		if not dbwrite( cli, id, 1, {"stat":"up"} ):
 			print("miss1")
