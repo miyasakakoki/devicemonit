@@ -15,7 +15,7 @@ create table devices(
 	description text not null,
 	seq integer ,
 	primary key( uid, did ),
-	foreing key( uid ) references User(uid) on delete cascade on update cascade
+	foreign key( uid ) references User(uid) on delete cascade on update cascade
 );
 
 
