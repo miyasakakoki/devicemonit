@@ -8,7 +8,7 @@ create table User(
 drop table if exists devices;
 create table devices(
 	uid integer,
-	did text not null index,
+	did text not null,
 	name text not null,
 	description text not null,
 	seq integer ,
