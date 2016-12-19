@@ -18,7 +18,7 @@ def existdevice( client, measurement ):
 	ret = client.query( "show measurements with measurement = {0};".format(measurement) )
 	return (len( ret.raw ) > 0)
 def dbwrite( client, measurement, value, tag ):
-	timestamp = time.time()
+	timestamp = int(time.time())
 	return client.write_points( [{"measurement":measurement,"tags":tag,"time":timestamp,"fields":{"value":value}}] )
 	
 
