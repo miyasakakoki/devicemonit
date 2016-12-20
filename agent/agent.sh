@@ -7,6 +7,6 @@ while sleep 3; do
 	fi
 done
 while sleep 60; do
-	curl $1 -X POST "\{\"seq\":${seq}\}"
+	curl $1 -X POST -d "{\"seq\":${seq}}"
 done
 
