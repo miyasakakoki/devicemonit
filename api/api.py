@@ -39,10 +39,10 @@ class MyAPI( object ):
 		cli = InfluxDBClient( host, port, user, password, dbname )
 		if not existdevice( cli, id ):
 			raise falcon.HTTPNotFound()
-		data = json.loads( req.stream.read() )
-		if "num" not in data or type(data["num"]) is not int:
+		data = json.loads( req.stream.read().decode('utf-8') )
+		if "seq" not in data or type(data["seq"]) is not int:
 			raise falcon.HTTPNotFound()
-		if not dbwrite( cli, id, data["num"], {} ):
+		if not dbwrite( cli, id, data["seq"], {} ):
 			print("miss2")
 		res.status = falcon.HTTP_200
 		res.content_type = 'application/javascript'
