@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block maincontent %}
+<div class="container-fluid" style="padding:70px 10px;min-height:2000px">
+	<div class="list-group">
+		<a href="#" id="x1" class="list-group-item">test</a>
+		<a href="#" id="x2" class="list-group-item">test</a>
+		<a href="#" id="x3" class="list-group-item">test</a>
+		<a href="#" id="x4" class="list-group-item">test</a>
+		<a href="#" id="plus" class="list-group-item"><span class="glyphicon glyphicon-plus"></span></a>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<style>
+.list-group>a {
+	float:left;
+	margin:10px;
+	border-radius: 5px;
+	width:100px;
+	height:100px;
+}   
+.list-group>a#plus{
+	width:50px;
+	height:50px;
+}   
+</style>
+
+{% endblock %}
