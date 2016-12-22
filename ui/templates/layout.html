@@ -1,0 +1,23 @@
+{% extends "outerlayout.html" %}
+{% block content %}
+<nav class="navbar navbar-default navbar-fixed-top">
+	<div class="container">
+		<div class="navbar-header"><a class="navbar-brand" href="#">Test project</a></div>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
+				<li><a href="#summary">Summary</a></li>
+				<li><a href="#about">test1</a></li>
+				<li><a href="#contact">test2</a></li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+					<li><a href="/logout">Logout</a></li>
+			</ul>
+		</div>
+	</div>
+</nav>
+
+{% block maincontent %}
+{% endblock %}
+
+{% endblock %}
+
