@@ -1,17 +1,75 @@
 {% extends "layout.html" %}
 {% block maincontent %}
 <div class="container-fluid" style="padding:70px 10px;min-height:2000px">
-	<div class="list-group">
-		<a href="#" id="x1" class="list-group-item">test</a>
-		<a href="#" id="x2" class="list-group-item">test</a>
-		<a href="#" id="x3" class="list-group-item">test</a>
-		<a href="#" id="x4" class="list-group-item">test</a>
+	<h1> Summary of Devices</h1>
+	<div class="list-group" id="list">
 		<a href="#" id="plus" class="list-group-item"><span class="glyphicon glyphicon-plus"></span></a>
 	</div>
 </div>
 {% endblock %}
 
+
+
 {% block script %}
+<script>
+var devstaturl = "{{ url_for("devicestatus_all") }}"
+$(function(){
+	function update(){
+		$( "#update" ).prop( "disabled", true );
+		$.ajax({
+			type: "get",
+			url: devstaturl,
+			dataType: "json",
+			success: function( data ){
+				var devlist = data.devices;
+				var flag = false
+				for( var i in devlist ){
+					id = devlist[i].ID;
+					if( $( "#"+id ).length ){//Update item
+						$( "#"+id ).removeClass( "list-group-item-success list-group-item-warning list-group-item-danger" );
+						if( devlist[i].Stat == "OK" ) $( "#"+id ).addClass( "list-group-item-success" );
+						else if( devlist[i].Stat == "UP" ) $( "#"+id ).addClass( "list-group-item-warning" );
+						else if( devlist[i].Stat == "NG" ) $( "#"+id ).addClass( "list-group-item-danger" );
+					}else{//Append item
+						var str = "<a href=\"#\" id=\"" + id + "\" class=\"list-group-item list-group-item-action list-group-item-";
+						if( devlist[i].Stat == "OK" ) str += "success";
+						else if( devlist[i].Stat == "UP" ) str += "warning";
+						else if( devlist[i].Stat == "NG" ) str += "danger";
+						str += "\" >" + devlist[i].Name + "<br />ID: " + devlist[i].ID + "<br >";
+						str += devlist[i].Stat + "</a>";
+						$( "#list" ).append( str );
+						flag = true
+					}
+					if( flag ) $("#plus").appendTo('#list');
+				}
+			},
+			error: function(){
+				alert( "HTTP reqest fail." );
+			},
+			complete: function(){
+				$( "#update" ).prop( "disabled", false );
+			}
+		});
+	}
+	update();
+	setInterval( update, 60000 );
+	$( "#update" ).click( update );
+	$( "#list" ).on( "click", "a", function(){
+		if( $(this).attr("id") == "plus" ){
+			//プラスボタン用
+			alert( "Open dialog" );
+		}else{
+			//それ以外用
+			alert( "More Info" );
+		}
+	});
+});
+</script>
+{% endblock%}
+
+
+
+{% block style %}
 <style>
 .list-group>a {
 	float:left;
@@ -25,5 +83,7 @@
 	height:50px;
 }   
 </style>
-
 {% endblock %}
+
+
+
