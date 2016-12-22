@@ -2,9 +2,16 @@
 {% block maincontent %}
 <div class="container-fluid" style="padding:70px 10px;min-height:2000px">
 	<h1> Summary of Devices</h1>
+	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Update</button>&nbsp;Last Update:<span id="updatetime"></span>
 	<div class="list-group" id="list">
 		<a href="#" id="plus" class="list-group-item"><span class="glyphicon glyphicon-plus"></span></a>
 	</div>
+</div>
+<div style="display:none">
+	<a href="#" id="listitem" class="list-group-item list-group-itemaction">
+		<h4 class="list-group-item-heading"></h4>
+		<p class="list-group-item-text"></p>
+	</a>
 </div>
 {% endblock %}
 
@@ -31,17 +38,21 @@ $(function(){
 						else if( devlist[i].Stat == "UP" ) $( "#"+id ).addClass( "list-group-item-warning" );
 						else if( devlist[i].Stat == "NG" ) $( "#"+id ).addClass( "list-group-item-danger" );
 					}else{//Append item
-						var str = "<a href=\"#\" id=\"" + id + "\" class=\"list-group-item list-group-item-action list-group-item-";
+						var item = $( "#listitem" ).clone( true );
+						var str = "list-group-item-";
+						item.attr( "id", id );
 						if( devlist[i].Stat == "OK" ) str += "success";
 						else if( devlist[i].Stat == "UP" ) str += "warning";
 						else if( devlist[i].Stat == "NG" ) str += "danger";
-						str += "\" >" + devlist[i].Name + "<br />ID: " + devlist[i].ID + "<br >";
-						str += devlist[i].Stat + "</a>";
-						$( "#list" ).append( str );
+						item.addClass( str );
+						item.children( "h4" ).append( devlist[i].Name );
+						item.children( "p" ).prepend( "ID: "+devlist[i].ID+"<br/><span>"+devlist[i].Stat+"</span>" );
+						$( "#list" ).append( item );
 						flag = true
 					}
 					if( flag ) $("#plus").appendTo('#list');
 				}
+				$( "#updatetime" ).empty().append( data.Time );
 			},
 			error: function(){
 				alert( "HTTP reqest fail." );
@@ -79,9 +90,12 @@ $(function(){
 	height:100px;
 }   
 .list-group>a#plus{
-	width:50px;
-	height:50px;
-}   
+	width:48px;
+	height:48px;
+}
+.list-group>a>p>span{
+	font-size: 2em;
+}
 </style>
 {% endblock %}
 
