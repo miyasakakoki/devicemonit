@@ -1,0 +1,52 @@
+{% extends "outerlayout.html" %}
+{% block content %}
+<div class="container">
+	<form class="form-signin" action="/login" method="POST" id="signin">
+		<h2 class="form-signin-heading">Sign in...</h2>
+		<label for="inputEmail" class="sr-only">Email address</label>
+		<input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email address" required="" autofocus="" />
+		<label for="inputPassword" class="sr-only">Password</label>
+		<input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required="" />
+		<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+		<div class="form-signin-footing">
+			<a href="/create"> Create new Project....</a>
+		</div>
+	</form>
+	{% if error %}
+	<div class="alert alert-danger">
+		<strong>Error:</strong> {{error}}
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+#signin {
+	max-width:400px;
+	margin: 16px auto;
+}
+.alert {
+	max-width:400px;
+	margin: 16px auto;
+}
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+//$( function (){
+//	$( "#signin" ).submit( function(event){
+//		event.preventDefault();
+//		var email = $( "#inputEmail" ).val();
+//		var passw = $( "#inputPassword" ).val();
+//		$.post( $(this).attr("action"), JSON.stringify({ Email:email, Pass:passw }),
+//			function( data ) {
+//				if( data["Stat"] == "OK" ) $( location ).attr( "href", "/dashbord" );
+//				else alert( "Login Failed" );
+//			}, "json"
+//		);
+//	});
+//});
+</script>
+{% endblock %}
