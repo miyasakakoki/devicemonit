@@ -86,11 +86,17 @@ def login():
 	error = "Invalid credentials.Please try again."
 	return render_template( 'login.html', error=error )
 
+@app.route( "/logout" )
+def logout():
+	session.pop( "uid", None )
+	return redirect( url_for( "login" ) )
+
 
 @app.route( "/dashboard", methods=["GET"] )
 @login_required
 def dashboard_page():
-	return "UID:" + str(session["uid"]) + "   Name: "+ session["Name"] + "   Date:"+ session["Date"].strftime( "%y%m%d %H:%M:%s" )
+	return render_template( 'dashboard.html' )
+#	return "UID:" + str(session["uid"]) + "   Name: "+ session["Name"] + "   Date:"+ session["Date"].strftime( "%y%m%d %H:%M:%s" )
 
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
