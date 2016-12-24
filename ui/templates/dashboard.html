@@ -2,15 +2,78 @@
 {% block maincontent %}
 <div class="container-fluid" style="padding:70px 10px;min-height:2000px">
 	<h1> Summary of Devices</h1>
-	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Update</button>&nbsp;Last Update:<span id="updatetime"></span>
+	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Reload</button>&nbsp;Last Reload:<span id="updatetime"></span>
 	<div class="list-group" id="list">
 		<a href="#" id="plus" class="list-group-item"><span class="glyphicon glyphicon-plus"></span></a>
 	</div>
 </div>
+
+
+<!-- for add and mod device-->
+<div class="modal fade" id="moreinfo" tabindex="-1" >
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Add Device</h4>
+			</div>
+			<div class="modal-body">
+				<input name="DeviceName" />
+				<input name="DeviceID" /><button class="btn btn-default">GenerateID</button><span>OK</span>
+				Description
+			</div>
+			<div class="modalbody">
+				now status
+				last hartbeat
+			</div>
+			<div class="modal-footer">
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="adddev" tabindex="-1" >
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				title
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+			</div>
+		</div>
+	</div>
+</div>
+
 <div style="display:none">
 	<a href="#" id="listitem" class="list-group-item list-group-itemaction">
-		<h4 class="list-group-item-heading"></h4>
-		<p class="list-group-item-text"></p>
+		<h4 class="list-group-item-heading smallshow">
+			<span name="DeviceName"></span><span class="glyphicon glyphicon-heart"</span>
+		</h4>
+		<h4 class="list-group-item-heading normalshow">
+			<span name="DeviceName"></span>
+		</h4>
+		<h4 class="list-group-item-heading moreshow">
+			<span name="DeviceName"></span>
+			<button class="btn btn-default"><span class="glyphicon glyphicon-trash"></span></button>
+			<button class="btn btn-default"><span class="glyphicon glyphicon-edit"></span></button>
+		</h4>
+
+		<div class="list-group-item-text normalshow" style="text-align:center">
+			<span name="Status"></span><br />
+			@<span name="HeartTime"></span>
+		</div>
+		<div class="list-group-item-text moreshow">
+			DeviceID:&nbsp;<span name="DeviceID"></span><br />
+			Now Status:&nbsp;<span name="Status"></span>&nbsp;(At <span name="HeartTime"></span>)<br />
+			Description:<br />
+			<p name="Description">
+			</p>
+			Commands:
+			<button class="btn btn-default"><span class="glyphicon glyphicon-refresh"></span></button>
+			<button class="btn btn-default"><span class="glyphicon glyphicon-off"></span></button>
+		</div>
 	</a>
 </div>
 {% endblock %}
@@ -37,6 +100,10 @@ $(function(){
 						if( devlist[i].Stat == "OK" ) $( "#"+id ).addClass( "list-group-item-success" );
 						else if( devlist[i].Stat == "UP" ) $( "#"+id ).addClass( "list-group-item-warning" );
 						else if( devlist[i].Stat == "NG" ) $( "#"+id ).addClass( "list-group-item-danger" );
+						$( "#"+id ).find( "span[name='DeviceName']" ).empty().append( devlist[i].Name );
+						$( "#"+id ).find( "span[name='Status']" ).empty().append( devlist[i].Stat );
+						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( "yyyy/mm/dd hh:mm:ss" );
+						$( "#"+id ).find( "p[name='Description']" ).empty().append( "Hoge Fuga TTTT" );
 					}else{//Append item
 						var item = $( "#listitem" ).clone( true );
 						var str = "list-group-item-";
@@ -45,8 +112,11 @@ $(function(){
 						else if( devlist[i].Stat == "UP" ) str += "warning";
 						else if( devlist[i].Stat == "NG" ) str += "danger";
 						item.addClass( str );
-						item.children( "h4" ).append( devlist[i].Name );
-						item.children( "p" ).prepend( "ID: "+devlist[i].ID+"<br/><span>"+devlist[i].Stat+"</span>" );
+						item.find( "span[name='DeviceName']" ).append( devlist[i].Name );
+						item.find( "span[name='DeviceID']" ).append( devlist[i].ID );
+						item.find( "span[name='Status']" ).append( devlist[i].Stat );
+						item.find( "span[name='HeartTime']" ).append("yyyy/mm/dd hh:mm:ss" );
+						item.find( "p[name='Description']").append( "Hoge Fuga TTTT" );
 						$( "#list" ).append( item );
 						flag = true
 					}
@@ -62,17 +132,31 @@ $(function(){
 			}
 		});
 	}
+	$( "a>.smallshow, a>.moreshow" ).hide();
 	update();
 	setInterval( update, 60000 );
+
 	$( "#update" ).click( update );
-	$( "#list" ).on( "click", "a", function(){
-		if( $(this).attr("id") == "plus" ){
-			//プラスボタン用
-			alert( "Open dialog" );
-		}else{
-			//それ以外用
-			alert( "More Info" );
-		}
+	$( "#plus" ).click( function(){
+		$( "#moreinfo" ).modal();
+	});
+	$( "#list" ).on( "mouseenter", "a", function(){
+		if( $(this).attr( "id" ) == "plus" ) return;
+		$( this ).find( ".smallshow, .normalshow" ).hide();
+		$( this ).animate( {
+			width: '+=100px',
+			height: '+=100px'
+		}, 200 );
+		$( this ).find( ".moreshow" ).fadeIn("slow");
+	});
+	$( "#list" ).on( "mouseleave", "a", function(){
+		if( $(this).attr("id") == "plus" ) return;
+		$( this ).find( ".moreshow" ).hide();
+		$( this ).find( ".normalshow" ).fadeIn("slow");
+		$( this ).animate( {
+			width: '-=100px',
+			height: '-=100px'
+		}, 200 );
 	});
 });
 </script>
