@@ -1,29 +1,266 @@
 {% extends "layout.html" %}
 {% block maincontent %}
 <div class="container-fluid" style="padding:70px 10px;min-height:2000px">
-	<div class="list-group">
-		<a href="#" id="x1" class="list-group-item">test</a>
-		<a href="#" id="x2" class="list-group-item">test</a>
-		<a href="#" id="x3" class="list-group-item">test</a>
-		<a href="#" id="x4" class="list-group-item">test</a>
-		<a href="#" id="plus" class="list-group-item"><span class="glyphicon glyphicon-plus"></span></a>
+	<h1> Summary of Devices</h1>
+	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Reload</button>&nbsp;Last Reload:<span id="updatetime"></span>
+	<button id="toggleview" class="btn btn-info btn-md pull-right">Small</button>
+	<div class="list-group" id="list">
+		<a href="#" id="plus" class="list-group-item list-group-item-action " data-toggle="modal" data-target="#moreinfo" data-whatever="add" ><span class="glyphicon glyphicon-plus"></span></a>
 	</div>
+</div>
+
+
+<!-- for add and mod device-->
+<div class="modal fade" id="moreinfo" tabindex="-1" >
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Add Device</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal">
+					<div class="control-group has-success has-feedback">
+						<label class="control-label" for="DeviceID">DeviceID</label>
+						<div class="controls">
+							<input name="DeviceID" class="form-control" type="text" placeholder="Device-ID" required="" />
+							<span class="glyphicon glyphicon-ok form-control-feedback"></span>
+						</div>
+					</div>
+					<div class="control-group">
+						<label for="DeviceName">Device-Name</label>
+						<div class="controls">
+							<input name="DeviceName" class="form-control" type="text" placeholder="Device Name" required="" />
+						</div>
+					</div>
+					<div class="control-group">
+						<label for="Description">Descritption</label>
+						<div class="controls">
+							<textarea rows="10" class="form-control"></textarea>
+						</div>
+					</div>
+					<div class="control-group">
+						<div class="controls">
+							<button class="btn btn-default" data-dismiss="modal">Cansel</button>
+							<button class="btn btn-default" type="submit">Add</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div style="display:none">
+	<a href="#" id="listitem" class="list-group-item list-group-itemaction listitems">
+		<h4 class="list-group-item-heading smallshow">
+			<span name="DeviceName"></span><span name="icon" class="glyphicon glyphicon-heart pull-right"</span>
+		</h4>
+		<h3 class="list-group-item-heading normalshow">
+			<span name="DeviceName"></span>
+		</h3>
+		<h3 class="list-group-item-heading moreshow">
+			<span name="DeviceName"></span>
+			<button name="edit" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-edit"></span></button>
+			<button name="destroy" class="btn btn-default pull-right"><span class="glyphicon glyphicon-trash"></span></button>
+		</h3>
+
+		<div class="list-group-item-text normalshow" style="text-align:center">
+			<span name="Status"></span><br />
+			@<span name="HeartTime"></span>
+		</div>
+		<div class="list-group-item-text moreshow">
+			DeviceID:&nbsp;<span name="DeviceID"></span><br />
+			Now Status:&nbsp;<span name="Status"></span>&nbsp;(At <span name="HeartTime"></span>)<br />
+			Description:<br />
+			<p name="Description">
+			</p>
+			Commands:
+			<button class="btn btn-default"><span class="glyphicon glyphicon-refresh"></span></button>
+			<button class="btn btn-default"><span class="glyphicon glyphicon-off"></span></button>
+		</div>
+	</a>
 </div>
 {% endblock %}
 
+
+
 {% block script %}
+<script>
+var devstaturl = "{{ url_for("devicestatus_all") }}";
+var devid = "{{ url_for("gen_device_id") }}";
+$(function(){
+	function update(){
+		$( "#update" ).prop( "disabled", true );
+		$.ajax({
+			type: "get",
+			url: devstaturl,
+			dataType: "json",
+			success: function( data ){
+				var devlist = data.devices;
+				var flag = false
+				for( var i in devlist ){
+					id = devlist[i].ID;
+					if( $( "#"+id ).length ){//Update item
+						$( "#"+id ).removeClass( "list-group-item-success list-group-item-warning list-group-item-danger" );
+						if( devlist[i].Stat == "OK" ) $( "#"+id ).addClass( "list-group-item-success" );
+						else if( devlist[i].Stat == "UP" ) $( "#"+id ).addClass( "list-group-item-warning" );
+						else if( devlist[i].Stat == "NG" ) $( "#"+id ).addClass( "list-group-item-danger" );
+						$( "#"+id ).find( "span[name='DeviceName']" ).empty().append( devlist[i].Name );
+						$( "#"+id ).find( "span[name='Status']" ).empty().append( devlist[i].Stat );
+						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( "yyyy/mm/dd hh:mm:ss" );
+						$( "#"+id ).find( "p[name='Description']" ).empty().append( "Hoge Fuga TTTT" );
+						if( devlist[i].Stat != "OK" ) $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
+						else $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
+					}else{//Append item
+						var item = $( "#listitem" ).clone( true );
+						var str = "list-group-item-";
+						item.attr( "id", id );
+						if( devlist[i].Stat == "OK" ) str += "success";
+						else if( devlist[i].Stat == "UP" ) str += "warning";
+						else if( devlist[i].Stat == "NG" ) str += "danger";
+						item.addClass( str );
+						item.find( "span[name='DeviceName']" ).append( devlist[i].Name );
+						item.find( "button[name='edit']" ).attr( "data-whatever", devlist[i].ID );
+						item.find( "span[name='DeviceID']" ).append( devlist[i].ID );
+						item.find( "span[name='Status']" ).append( devlist[i].Stat );
+						item.find( "span[name='HeartTime']" ).append("yyyy/mm/dd hh:mm:ss" );
+						item.find( "p[name='Description']").append( "Hoge Fuga TTTT" );
+						if( devlist[i].Stat != "OK" ) item.find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
+						else item.find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
+						$( "#list" ).append( item );
+						flag = true
+					}
+					if( flag ) $("#plus").appendTo('#list');
+				}
+				$( "#updatetime" ).empty().append( data.Time );
+			},
+			error: function(){
+				alert( "HTTP reqest fail." );
+			},
+			complete: function(){
+				$( "#update" ).prop( "disabled", false );
+			}
+		});
+	}
+	
+	update();
+	setInterval( update, 60000 );
+	$( "#update" ).click( update );
+
+	var view = ".normalshow";
+	var viewo = [120,120];
+	$( "a>.smallshow, a>.moreshow" ).hide();
+	$( "#listitem" ).click(function(){
+		if( $( this ).find(".moreshow").is( ":visible" ) ){
+			$( this ).find(".moreshow").hide();
+			$( this ).find( view ).fadeIn("slow");
+			$( this ).animate( { width:viewo[0],height:viewo[1] }, 200 );
+		}else{
+			$( this ).find(".smallshow, .normalshow").hide();
+			$( this ).find( ".moreshow" ).fadeIn("slow");
+			$( this ).animate( { width: "320px", height:"320px" }, 200 );
+		}
+	});
+	$( "#toggleview" ).click( function(){
+		$( ".listitems>div.moreshow:visible" ).parent().click();
+		$( ".listitems" ).find( view ).hide();
+		if( view == ".normalshow" ){
+			view = ".smallshow";
+			viewo = [120,50];
+			$(this).html( "Medium" );
+		}else{
+			view = ".normalshow";
+			viewo = [120,120];
+			$(this).html( "Small" );
+		}
+		$( ".listitems" ).find( view ).show();
+		$( ".listitems" ).animate( {width:viewo[0],height:viewo[1]}, 200 );
+	});
+
+	$( "#listitem button[name='edit']" ).click( function( event ){
+		var ID = $( this ).parent().parent().find( "span[name='DeviceID']" ).html();
+		var name = $( this ).parent().parent().find( "span[name='DeviceName']" ).html();
+		var desc = $( this ).parent().parent().find( "span[name='Description']" ).html();
+		$( "#moreinfo input[name='DeviceID']" ).val( ID );
+		$( "#moreinfo input[name='DeviceName']" ).val( name );
+		$( "#moreinfo input[name='Description']" ).val( desc );
+		$( "#moreinfo" ).modal();
+		event.stopPropagation();
+	});
+	$( "#moreinfo" ).on( "show.bs.modal", function(event){
+		var tmp = $(event.relatedTarget).data('whatever');
+		if( tmp == 'add' ){
+			$.ajax({
+				type: "get",
+				url: devid,
+				dataType: "json",
+				success: function( data ){
+					$( "#moreinfo input[name='DeviceID']" ).val( data.ID );
+				},
+				error: function(){
+					alert( "HTTP request fail." );
+				}
+			});
+			$(this).find( "input[name='DeviceName']" ).val("");
+			$(this).find( "textarea[name='Description']" ).val("");
+			$(this).find( "input[name='DeviceID']" ).prop( "disabled", false );
+			$(this).find( ".glyphicon" ).show();
+			$(this).find( ".control-group:first" ).addClass( "has-success" );
+		}else{
+			$(this).find( ".glyphicon" ).hide();
+			$(this).find( ".control-group:first" ).removeClass("has-success");
+			$(this).find( "input[name='DeviceID']" ).prop( "disabled", true );
+		}
+	});
+	function checkID(){
+		var tmp = { "ID": $( "#moreinfo input[name='DeviceID']" ).val() };
+		if( tmp.length == 0 ) return;
+		$.ajax({
+			type: "post",
+			url: devid,
+			data: JSON.stringify( tmp ),
+			contentType: "application/json",
+			dataType: "json",
+			success: function(data){
+				if( data.stat == "OK" ){
+					$( "#moreinfo .has-feedback" ).removeClass( "has-error" ).addClass( "has-success" );
+					$( "#moreinfo .form-control-feedback" ).removeClass("glyphicon-remove").addClass("glyphicon-ok");
+				}else{
+					$( "#moreinfo .has-feedback" ).removeClass( "has-success" ).addClass( "has-error" );
+					$( "#moreinfo .form-control-feedback" ).removeClass("glyphicon-ok").addClass("glyphicon-remove");
+				}
+			},
+			error: function(){
+				alert( "HTTP request fail." );
+			}
+		});
+	}
+	$( "#moreinfo input[name='DeviceID']" ).change( checkID );
+	$( "#moreinfo input[name='DeviceID']" ).bind( "paste", function(){ setTimeout( checkID, 20 ); });
+
+});
+</script>
+{% endblock%}
+
+
+
+{% block style %}
 <style>
 .list-group>a {
 	float:left;
 	margin:10px;
 	border-radius: 5px;
-	width:100px;
-	height:100px;
-}   
-.list-group>a#plus{
-	width:50px;
-	height:50px;
-}   
+}
+.list-group>a>p>span{
+	font-size: 2em;
+}
+.listitems {
+	width:120px;
+	height:120px;
+}
 </style>
-
 {% endblock %}
+
+
+

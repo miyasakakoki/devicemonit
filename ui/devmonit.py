@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask, request, g, send_from_directory, render_template, session, redirect, url_for
+from flask import Flask, request, g, send_from_directory, render_template, session, redirect, url_for, jsonify
 from functools import wraps
 import sqlite3
 import os
@@ -15,7 +15,8 @@ app.config.update( dict(
 	PASSWORD = 'default'
 ))
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
-app.config['SECRET_KEY'] = os.urandom(24)
+#app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SECRET_KEY'] = "testkey"
 
 def condb():
 	"""Connect to Database"""
@@ -95,8 +96,29 @@ def logout():
 @app.route( "/dashboard", methods=["GET"] )
 @login_required
 def dashboard_page():
-	return render_template( 'dashboard.html' )
+	return render_template( 'dashboard.html', page="summary" )
 #	return "UID:" + str(session["uid"]) + "   Name: "+ session["Name"] + "   Date:"+ session["Date"].strftime( "%y%m%d %H:%M:%s" )
+
+@app.route( "/api/device/all" )
+@login_required
+def devicestatus_all():
+	test = { "devices":[
+		{"ID":"X1", "Stat":"OK", "Name":"one"},
+		{"ID":"X2", "Stat":"NG", "Name":"two"},
+		{"ID":"X3", "Stat":"UP", "Name":"three"},
+		{"ID":"X4", "Stat":"OK", "Name":"four"}
+	], "Time":"yyyymmdd hhmmss" }
+	return jsonify( test )
+
+@app.route( "/api/deviceID"	, methods=["GET"] )
+@login_required
+def gen_device_id():
+	return jsonify( {"ID":"XXXXXXXX"} )
+
+@app.route( "/api/deviceID" , methods=["POST"] )
+@login_required
+def check_device_id():
+	return jsonify( {"stat":"OK"} )
 
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
