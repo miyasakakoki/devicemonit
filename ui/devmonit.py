@@ -120,6 +120,12 @@ def gen_device_id():
 def check_device_id():
 	return jsonify( {"stat":"OK"} )
 
+@app.route( "/api/device/<DeviceID>", methods=["POST"] )
+@login_required
+def mod_device( DeviceID ):
+	print( DeviceID );
+	return jsonify( {"stat":"OK"} )
+
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
 	return render_template( 'signup.html' )
