@@ -4,7 +4,7 @@
 	<h1> Summary of Devices</h1>
 	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Reload</button>&nbsp;Last Reload:<span id="updatetime"></span>
 	<div class="list-group" id="list">
-		<a href="#" id="plus" class="list-group-item"><span class="glyphicon glyphicon-plus"></span></a>
+		<a href="#" id="plus" class="list-group-item list-group-item-action "><span class="glyphicon glyphicon-plus"></span></a>
 	</div>
 </div>
 
@@ -32,33 +32,19 @@
 	</div>
 </div>
 
-<div class="modal fade" id="adddev" tabindex="-1" >
-	<div class="modal-dialog modal-md">
-		<div class="modal-content">
-			<div class="modal-header">
-				title
-			</div>
-			<div class="modal-body">
-			</div>
-			<div class="modal-footer">
-			</div>
-		</div>
-	</div>
-</div>
-
 <div style="display:none">
-	<a href="#" id="listitem" class="list-group-item list-group-itemaction">
-		<h4 class="list-group-item-heading smallshow">
+	<a href="#" id="listitem" class="list-group-item list-group-itemaction listitems">
+		<h3 class="list-group-item-heading smallshow">
 			<span name="DeviceName"></span><span class="glyphicon glyphicon-heart"</span>
-		</h4>
-		<h4 class="list-group-item-heading normalshow">
+		</h3>
+		<h3 class="list-group-item-heading normalshow">
 			<span name="DeviceName"></span>
-		</h4>
-		<h4 class="list-group-item-heading moreshow">
+		</h3>
+		<h3 class="list-group-item-heading moreshow">
 			<span name="DeviceName"></span>
-			<button class="btn btn-default"><span class="glyphicon glyphicon-trash"></span></button>
-			<button class="btn btn-default"><span class="glyphicon glyphicon-edit"></span></button>
-		</h4>
+			<button class="btn btn-default pull-right"><span class="glyphicon glyphicon-trash"></span></button>
+			<button class="btn btn-default pull-right"><span class="glyphicon glyphicon-edit"></span></button>
+		</h3>
 
 		<div class="list-group-item-text normalshow" style="text-align:center">
 			<span name="Status"></span><br />
@@ -140,23 +126,17 @@ $(function(){
 	$( "#plus" ).click( function(){
 		$( "#moreinfo" ).modal();
 	});
-	$( "#list" ).on( "mouseenter", "a", function(){
-		if( $(this).attr( "id" ) == "plus" ) return;
-		$( this ).find( ".smallshow, .normalshow" ).hide();
-		$( this ).animate( {
-			width: '+=100px',
-			height: '+=100px'
-		}, 200 );
-		$( this ).find( ".moreshow" ).fadeIn("slow");
-	});
-	$( "#list" ).on( "mouseleave", "a", function(){
-		if( $(this).attr("id") == "plus" ) return;
-		$( this ).find( ".moreshow" ).hide();
-		$( this ).find( ".normalshow" ).fadeIn("slow");
-		$( this ).animate( {
-			width: '-=100px',
-			height: '-=100px'
-		}, 200 );
+	$( "#listitem" ).click(function(){
+		console.log( $( this ).width(), $(this).height() );
+		if( $( this ).find(".moreshow").is( ":visible" ) ){
+			$( this ).find(".moreshow").hide();
+			$( this ).find(".normalshow").fadeIn("slow");
+			$( this ).animate( { width:"-=200px",height:"-=200px" }, 200 );
+		}else{
+			$( this ).find(".smallshow, .normalshow").hide();
+			$( this ).find( ".moreshow" ).fadeIn("slow");
+			$( this ).animate( { width: "+=200px", height:"+=200px" }, 200 );
+		}
 	});
 });
 </script>
@@ -170,15 +150,13 @@ $(function(){
 	float:left;
 	margin:10px;
 	border-radius: 5px;
-	width:100px;
-	height:100px;
-}   
-.list-group>a#plus{
-	width:48px;
-	height:48px;
 }
 .list-group>a>p>span{
 	font-size: 2em;
+}
+.listitems {
+	width:120px;
+	height:120px;
 }
 </style>
 {% endblock %}
