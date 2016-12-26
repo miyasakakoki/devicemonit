@@ -15,7 +15,8 @@ app.config.update( dict(
 	PASSWORD = 'default'
 ))
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
-app.config['SECRET_KEY'] = os.urandom(24)
+#app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SECRET_KEY'] = "testkey"
 
 def condb():
 	"""Connect to Database"""
@@ -108,6 +109,16 @@ def devicestatus_all():
 		{"ID":"X4", "Stat":"OK", "Name":"four"}
 	], "Time":"yyyymmdd hhmmss" }
 	return jsonify( test )
+
+@app.route( "/api/deviceID"	, methods=["GET"] )
+@login_required
+def gen_device_id():
+	return jsonify( {"ID":"XXXXXXXX"} )
+
+@app.route( "/api/deviceID" , methods=["POST"] )
+@login_required
+def check_device_id():
+	return jsonify( {"stat":"OK"} )
 
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
