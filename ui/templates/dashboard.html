@@ -19,7 +19,7 @@
 				<h4 class="modal-title">Add Device</h4>
 			</div>
 			<div class="modal-body">
-				<form class="form-horizontal">
+				<form class="form-horizontal" >
 					<div class="control-group has-success has-feedback">
 						<label class="control-label" for="DeviceID">DeviceID</label>
 						<div class="controls">
@@ -36,7 +36,7 @@
 					<div class="control-group">
 						<label for="Description">Descritption</label>
 						<div class="controls">
-							<textarea rows="10" class="form-control"></textarea>
+							<textarea rows="10" name="Description" class="form-control"></textarea>
 						</div>
 					</div>
 					<div class="control-group">
@@ -89,6 +89,7 @@
 <script>
 var devstaturl = "{{ url_for("devicestatus_all") }}";
 var devid = "{{ url_for("gen_device_id") }}";
+var moddev = "{{ url_for("mod_device",DeviceID="") }}";
 $(function(){
 	function update(){
 		$( "#update" ).prop( "disabled", true );
@@ -207,10 +208,14 @@ $(function(){
 			$(this).find( "input[name='DeviceID']" ).prop( "disabled", false );
 			$(this).find( ".glyphicon" ).show();
 			$(this).find( ".control-group:first" ).addClass( "has-success" );
+			$(this).find( "button[type='submit']" ).html( "Add" );
+			$(this).find( ".modal-title" ).html( "New Device" );
 		}else{
 			$(this).find( ".glyphicon" ).hide();
 			$(this).find( ".control-group:first" ).removeClass("has-success");
 			$(this).find( "input[name='DeviceID']" ).prop( "disabled", true );
+			$(this).find( "button[type='submit']" ).html( "Submit" );
+			$(this).find( ".modal-title" ).html( "Device "+$(this).find("input[name='DeviceName']").val() );
 		}
 	});
 	function checkID(){
@@ -238,6 +243,33 @@ $(function(){
 	}
 	$( "#moreinfo input[name='DeviceID']" ).change( checkID );
 	$( "#moreinfo input[name='DeviceID']" ).bind( "paste", function(){ setTimeout( checkID, 20 ); });
+	$( "#moreinfo form" ).submit( function(){
+		var DeviceID = $("#moreinfo input[name='DeviceID']").val();
+		var DeviceName = $( "#moreinfo input[name='DeviceName']" ).val();
+		var Description = $( "#moreinfo textarea[name='Description']" ).val();
+		var tmp = { ID:DeviceID, Name:DeviceName, Description:Description };
+		if( $("#moreinfo input[name='DeviceID']").prop("disabled") ) tmp.stat = "mod";
+		else tmp.stat = "new";
+		$.ajax({
+			type: "post",
+			url: moddev+DeviceID,
+			data: JSON.stringify( tmp ),
+			contentType: "application/json",
+			dataType: "json",
+			success: function( data ){
+				if( data.stat == "OK" ){
+					update();
+					$("#moreinfo").modal("hide");
+				}else{
+					alert( "Fail..." );
+				}
+			},
+			error: function(){
+				alert( "HTTP request fail." );
+			}
+		});
+		return false;
+	});
 
 });
 </script>
