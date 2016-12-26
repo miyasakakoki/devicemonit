@@ -75,7 +75,7 @@ def login_page():
 @app.route( "/login", methods=["POST"] )
 def login():
 	if "uid" in session:
-		return redirect( url_for( "dashboard" ) )
+		return redirect( url_for( "dashboard_page" ) )
 	f = request.form
 	if "email" in f and len(f["email"]) > 2 and "password" in f and len(f["password"]) > 2:
 		res = checklogin( email=f["email"], password=f["password"] )
