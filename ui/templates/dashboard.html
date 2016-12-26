@@ -3,6 +3,7 @@
 <div class="container-fluid" style="padding:70px 10px;min-height:2000px">
 	<h1> Summary of Devices</h1>
 	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Reload</button>&nbsp;Last Reload:<span id="updatetime"></span>
+	<button id="toggleview" class="btn btn-info btn-md pull-right">Small</button>
 	<div class="list-group" id="list">
 		<a href="#" id="plus" class="list-group-item list-group-item-action "><span class="glyphicon glyphicon-plus"></span></a>
 	</div>
@@ -34,9 +35,9 @@
 
 <div style="display:none">
 	<a href="#" id="listitem" class="list-group-item list-group-itemaction listitems">
-		<h3 class="list-group-item-heading smallshow">
-			<span name="DeviceName"></span><span class="glyphicon glyphicon-heart"</span>
-		</h3>
+		<h4 class="list-group-item-heading smallshow">
+			<span name="DeviceName"></span><span name="icon" class="glyphicon glyphicon-heart pull-right"</span>
+		</h4>
 		<h3 class="list-group-item-heading normalshow">
 			<span name="DeviceName"></span>
 		</h3>
@@ -90,6 +91,8 @@ $(function(){
 						$( "#"+id ).find( "span[name='Status']" ).empty().append( devlist[i].Stat );
 						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( "yyyy/mm/dd hh:mm:ss" );
 						$( "#"+id ).find( "p[name='Description']" ).empty().append( "Hoge Fuga TTTT" );
+						if( devlist[i].Stat != "OK" ) $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
+						else $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
 					}else{//Append item
 						var item = $( "#listitem" ).clone( true );
 						var str = "list-group-item-";
@@ -103,6 +106,8 @@ $(function(){
 						item.find( "span[name='Status']" ).append( devlist[i].Stat );
 						item.find( "span[name='HeartTime']" ).append("yyyy/mm/dd hh:mm:ss" );
 						item.find( "p[name='Description']").append( "Hoge Fuga TTTT" );
+						if( devlist[i].Stat != "OK" ) item.find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
+						else item.find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
 						$( "#list" ).append( item );
 						flag = true
 					}
@@ -126,17 +131,33 @@ $(function(){
 	$( "#plus" ).click( function(){
 		$( "#moreinfo" ).modal();
 	});
+	var view = ".normalshow";
+	var viewo = [120,120];
 	$( "#listitem" ).click(function(){
-		console.log( $( this ).width(), $(this).height() );
 		if( $( this ).find(".moreshow").is( ":visible" ) ){
 			$( this ).find(".moreshow").hide();
-			$( this ).find(".normalshow").fadeIn("slow");
-			$( this ).animate( { width:"-=200px",height:"-=200px" }, 200 );
+			$( this ).find( view ).fadeIn("slow");
+			$( this ).animate( { width:viewo[0],height:viewo[1] }, 200 );
 		}else{
 			$( this ).find(".smallshow, .normalshow").hide();
 			$( this ).find( ".moreshow" ).fadeIn("slow");
-			$( this ).animate( { width: "+=200px", height:"+=200px" }, 200 );
+			$( this ).animate( { width: "320px", height:"320px" }, 200 );
 		}
+	});
+	$( "#toggleview" ).click( function(){
+		$( ".listitems>div.moreshow:visible" ).parent().click();
+		$( ".listitems" ).find( view ).hide();
+		if( view == ".normalshow" ){
+			view = ".smallshow";
+			viewo = [120,50];
+			$(this).html( "Medium" );
+		}else{
+			view = ".normalshow";
+			viewo = [120,120];
+			$(this).html( "Small" );
+		}
+		$( ".listitems" ).find( view ).show();
+		$( ".listitems" ).animate( {width:viewo[0],height:viewo[1]}, 200 );
 	});
 });
 </script>
