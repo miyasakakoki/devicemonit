@@ -56,7 +56,7 @@ def get_all( uid ):
 	cur = getdb().cursor()
 	cur.execute( "select did, Name, Description from Devices where uid = ?;", (uid,) )
 	result = cur.fetchall()
-	print( ressult )
+	print( result )
 	ret = []
 	if result is not None:
 		for i in result:
