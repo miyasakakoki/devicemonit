@@ -149,7 +149,7 @@ def check_device_id():
 	result = getdb().cursor().execute( "select * from devices where did = ?;",(request.json["ID"],) ).fetchone()
 	return jsonify( {"stat":"OK" if result == None else "NG"} )
 
-@app.route( "/api/device/<DeviceID>", methods=["POST"] )
+@app.route( "/api/device/<DeviceID>", methods=["POST"] )# To Do "edit api"
 @login_required
 def mod_device( DeviceID ):
 	if dict(check_device_id())["stat"] == "OK":
@@ -160,7 +160,7 @@ def mod_device( DeviceID ):
 @app.route( "/api/device/<DeviceID>", methods=["DELETE"] )
 @login_required
 def del_device( DeviceID ):
-	print( DeviceID );
+	getdb().cursor().execure( "delete from devices where did = ?;", (DeviceID,) )
 	return jsonify( {"stat":"OK"} )
 
 @app.route( "/signup", methods=["GET"] )
