@@ -3,6 +3,7 @@
 from flask import Flask, request, g, send_from_directory, render_template, session, redirect, url_for, jsonify
 from functools import wraps
 import sqlite3
+from influxdb import InfluxDBClient
 import os
 import datetime
 
@@ -12,7 +13,14 @@ app.config.update( dict(
 	DATABASE = os.path.join( app.root_path, 'devmon.db' ),
 	SECRET_KEY = 'devmonit',
 	USERNAME = 'admin',
-	PASSWORD = 'default'
+	PASSWORD = 'default',
+	INFLUXDB = {
+		"HOST": "localhost",
+		"PORT": 8086,
+		"USER": "test",
+		"PASS": "mytestuser",
+		"NAME": "devicemonit"
+	}
 ))
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 #app.config['SECRET_KEY'] = os.urandom(24)
@@ -42,11 +50,34 @@ def checklogin( email, password ):
 		return {"stat":"None"}
 	return {"stat":"OK", "uid":ret["uid"], "Name":ret["Name"] }
 
+def get_all( uid ):
+	client = InfluxDBClient( app.config["HOST"], app.config["PORT"], app.config["USER"], app.config["PASS"], app.config["NAME"] )
+	cur = getdb().cursor()
+	cur.execute( "select did, Name, Description from Devices where uid = ?;", (uid,) )
+	result = cur.fetchall()
+	print( ressult )
+	ret = []
+	if result is not None:
+		for i in result:
+			tmp = { "ID": i["did"], "Name": i["Name"], "Description": i["Description"] }
+			rs = list(client.query( "select last(*) from {0};".format( i["did"] ), epoch="ms" ).get_points())
+			now = int(datetime.datetime.now().timestamp())
+			if len(rs) == 0:
+				tmp["stat"] = "NG"
+				tmp["time"] = "0"
+			else:
+				tmp["time"] = datetime.datetime.fromtimestamp( rs[0]["time"] ).strftime( "%Y/%m/%d %H:%M:%S" )
+				tmp["stat"] = "NG" if rs[0].time() < now-65 else "OK"
+			ret.append( tmp )
+	return ret
+
+
 def login_required(f):
 	@wraps(f)
 	def decorated_function( *args, **kwargs ):
 		if "uid" not in session:
 			return redirect( url_for("login") )
+		session["Date"] = datetime.datetime.now()
 		return f( *args, **kwargs )
 	return decorated_function
 
@@ -102,13 +133,8 @@ def dashboard_page():
 @app.route( "/api/device/all" )
 @login_required
 def devicestatus_all():
-	test = { "devices":[
-		{"ID":"X1", "Stat":"OK", "Name":"one"},
-		{"ID":"X2", "Stat":"NG", "Name":"two"},
-		{"ID":"X3", "Stat":"UP", "Name":"three"},
-		{"ID":"X4", "Stat":"OK", "Name":"four"}
-	], "Time":"yyyymmdd hhmmss" }
-	return jsonify( test )
+	tmp = { "Devices": get_all( session["uid"] ), "Time": session["Date"].strftime( "%Y/%m/%d %H:%M:%S" ) }
+	return jsonify( tmp )
 
 @app.route( "/api/deviceID"	, methods=["GET"] )
 @login_required
