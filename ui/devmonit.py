@@ -139,14 +139,15 @@ def devicestatus_all():
 def gen_device_id():
 	while True:
 		tmp = "".join( random.SystemRandom().choice( string.ascii_letters + string.digits ) for _ in range(16) )
-		result=getdb().cursor().execute( "select * from devices where did = ?;", (tmp,) ).fetchone()
+		result = getdb().cursor().execute( "select * from devices where did = ?;", (tmp,) ).fetchone()
 		break if result == None
 	return jsonify( {"ID":tmp} )
 
 @app.route( "/api/deviceID" , methods=["POST"] )
 @login_required
 def check_device_id():
-	return jsonify( {"stat":"OK"} )
+	result = getdb().cursor().execute( "select * from devices where did = ?;",(request.json["ID"],) ).fetchone()
+	return jsonify( {"stat":"OK" if result == None else "NG"} )
 
 @app.route( "/api/device/<DeviceID>", methods=["POST"] )
 @login_required
