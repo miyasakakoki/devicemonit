@@ -152,8 +152,10 @@ def check_device_id():
 @app.route( "/api/device/<DeviceID>", methods=["POST"] )
 @login_required
 def mod_device( DeviceID ):
-	print( DeviceID );
-	return jsonify( {"stat":"OK"} )
+	if dict(check_device_id())["stat"] == "OK":
+		getdb().cursor().execute( "insert into devices( uid, did, Name, Descriotion ) values(?,?,?,?);", (session["uid"], request.json["ID"], request.json["Name"], request.json["Description"] ) )
+		return jsonify( {"stat":"OK"} )
+	return jsonify( {"stat":"NG"} ) 
 
 @app.route( "/api/device/<DeviceID>", methods=["DELETE"] )
 @login_required
