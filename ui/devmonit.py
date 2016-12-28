@@ -51,7 +51,8 @@ def checklogin( email, password ):
 	return {"stat":"OK", "uid":ret["uid"], "Name":ret["Name"] }
 
 def get_all( uid ):
-	client = InfluxDBClient( app.config["HOST"], app.config["PORT"], app.config["USER"], app.config["PASS"], app.config["NAME"] )
+	ifdb = app.config["INFLUXDB"]
+	client = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
 	cur = getdb().cursor()
 	cur.execute( "select did, Name, Description from Devices where uid = ?;", (uid,) )
 	result = cur.fetchall()
