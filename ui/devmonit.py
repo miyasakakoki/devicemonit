@@ -126,6 +126,12 @@ def mod_device( DeviceID ):
 	print( DeviceID );
 	return jsonify( {"stat":"OK"} )
 
+@app.route( "/api/device/<DeviceID>", methods=["DELETE"] )
+@login_required
+def del_device( DeviceID ):
+	print( DeviceID );
+	return jsonify( {"stat":"OK"} )
+
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
 	return render_template( 'signup.html' )
