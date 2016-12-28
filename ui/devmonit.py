@@ -6,6 +6,7 @@ import sqlite3
 from influxdb import InfluxDBClient
 import os
 import datetime
+import random
 
 app = Flask(__name__)
 app.config.from_object( __name__ )
@@ -56,7 +57,6 @@ def get_all( uid ):
 	cur = getdb().cursor()
 	cur.execute( "select did, Name, Description from Devices where uid = ?;", (uid,) )
 	result = cur.fetchall()
-	print( result )
 	ret = []
 	if result is not None:
 		for i in result:
@@ -71,7 +71,6 @@ def get_all( uid ):
 				tmp["stat"] = "NG" if rs[0].time() < now-65 else "OK"
 			ret.append( tmp )
 	return ret
-
 
 def login_required(f):
 	@wraps(f)
@@ -129,18 +128,20 @@ def logout():
 @login_required
 def dashboard_page():
 	return render_template( 'dashboard.html', page="summary" )
-#	return "UID:" + str(session["uid"]) + "   Name: "+ session["Name"] + "   Date:"+ session["Date"].strftime( "%y%m%d %H:%M:%s" )
 
 @app.route( "/api/device/all" )
 @login_required
 def devicestatus_all():
-	tmp = { "Devices": get_all( session["uid"] ), "Time": session["Date"].strftime( "%Y/%m/%d %H:%M:%S" ) }
-	return jsonify( tmp )
+	return jsonify( { "Devices": get_all( session["uid"] ), "Time": session["Date"].strftime( "%Y/%m/%d %H:%M:%S" ) } )
 
 @app.route( "/api/deviceID"	, methods=["GET"] )
 @login_required
 def gen_device_id():
-	return jsonify( {"ID":"XXXXXXXX"} )
+	while True:
+		tmp = "".join( random.SystemRandom().choice( string.ascii_letters + string.digits ) for _ in range(16) )
+		result=getdb().cursor().execute( "select * from devices where did = ?;", (tmp,) ).fetchone()
+		break if result == None
+	return jsonify( {"ID":tmp} )
 
 @app.route( "/api/deviceID" , methods=["POST"] )
 @login_required
