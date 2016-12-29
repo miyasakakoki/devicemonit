@@ -19,7 +19,7 @@
 				<h4 class="modal-title">Add Device</h4>
 			</div>
 			<div class="modal-body">
-				<form class="form-horizontal">
+				<form class="form-horizontal" >
 					<div class="control-group has-success has-feedback">
 						<label class="control-label" for="DeviceID">DeviceID</label>
 						<div class="controls">
@@ -36,7 +36,7 @@
 					<div class="control-group">
 						<label for="Description">Descritption</label>
 						<div class="controls">
-							<textarea rows="10" class="form-control"></textarea>
+							<textarea rows="10" name="Description" class="form-control"></textarea>
 						</div>
 					</div>
 					<div class="control-group">
@@ -46,6 +46,24 @@
 						</div>
 					</div>
 				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- for messagebox -->
+<div class="modal fade" id="messagebox" tabindex="-1" >
+	<div class="modal-dialog modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title"></h4>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button name="yesbutton" class="btn btn-default">Yes</button>
+				<button name="nobutton" class="btn btn-default">No</button>
 			</div>
 		</div>
 	</div>
@@ -62,7 +80,7 @@
 		<h3 class="list-group-item-heading moreshow">
 			<span name="DeviceName"></span>
 			<button name="edit" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-edit"></span></button>
-			<button name="destroy" class="btn btn-default pull-right"><span class="glyphicon glyphicon-trash"></span></button>
+			<button name="remove" class="btn btn-default pull-right"><span class="glyphicon glyphicon-trash"></span></button>
 		</h3>
 
 		<div class="list-group-item-text normalshow" style="text-align:center">
@@ -89,6 +107,7 @@
 <script>
 var devstaturl = "{{ url_for("devicestatus_all") }}";
 var devid = "{{ url_for("gen_device_id") }}";
+var moddev = "{{ url_for("mod_device",DeviceID="") }}";
 $(function(){
 	function update(){
 		$( "#update" ).prop( "disabled", true );
@@ -108,8 +127,8 @@ $(function(){
 						else if( devlist[i].Stat == "NG" ) $( "#"+id ).addClass( "list-group-item-danger" );
 						$( "#"+id ).find( "span[name='DeviceName']" ).empty().append( devlist[i].Name );
 						$( "#"+id ).find( "span[name='Status']" ).empty().append( devlist[i].Stat );
-						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( "yyyy/mm/dd hh:mm:ss" );
-						$( "#"+id ).find( "p[name='Description']" ).empty().append( "Hoge Fuga TTTT" );
+						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( devlist[i].time );
+						$( "#"+id ).find( "p[name='Description']" ).empty().append( devlist[i].Description );
 						if( devlist[i].Stat != "OK" ) $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
 						else $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
 					}else{//Append item
@@ -124,8 +143,8 @@ $(function(){
 						item.find( "button[name='edit']" ).attr( "data-whatever", devlist[i].ID );
 						item.find( "span[name='DeviceID']" ).append( devlist[i].ID );
 						item.find( "span[name='Status']" ).append( devlist[i].Stat );
-						item.find( "span[name='HeartTime']" ).append("yyyy/mm/dd hh:mm:ss" );
-						item.find( "p[name='Description']").append( "Hoge Fuga TTTT" );
+						item.find( "span[name='HeartTime']" ).append( devlist[i].time );
+						item.find( "p[name='Description']").append( devlist[i].Description );
 						if( devlist[i].Stat != "OK" ) item.find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
 						else item.find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
 						$( "#list" ).append( item );
@@ -149,7 +168,7 @@ $(function(){
 	$( "#update" ).click( update );
 
 	var view = ".normalshow";
-	var viewo = [120,120];
+	var viewo = [240,100];
 	$( "a>.smallshow, a>.moreshow" ).hide();
 	$( "#listitem" ).click(function(){
 		if( $( this ).find(".moreshow").is( ":visible" ) ){
@@ -159,7 +178,7 @@ $(function(){
 		}else{
 			$( this ).find(".smallshow, .normalshow").hide();
 			$( this ).find( ".moreshow" ).fadeIn("slow");
-			$( this ).animate( { width: "320px", height:"320px" }, 200 );
+			$( this ).animate( { width: "360px", height:"360px" }, 200 );
 		}
 	});
 	$( "#toggleview" ).click( function(){
@@ -167,24 +186,47 @@ $(function(){
 		$( ".listitems" ).find( view ).hide();
 		if( view == ".normalshow" ){
 			view = ".smallshow";
-			viewo = [120,50];
+			viewo = [180,50];
 			$(this).html( "Medium" );
 		}else{
 			view = ".normalshow";
-			viewo = [120,120];
+			viewo = [240,100];
 			$(this).html( "Small" );
 		}
 		$( ".listitems" ).find( view ).show();
 		$( ".listitems" ).animate( {width:viewo[0],height:viewo[1]}, 200 );
 	});
 
+	$( "#listitem button[name='remove']" ).click( function( event ){
+		var ID = $(this).parent().parent().find( "span[name='DeviceID']" ).html();
+		$( "#messagebox" ).find( ".modal-title" ).html( "Confirmation" );
+		$( "#messagebox" ).find( ".modal-body" ).html( "Are you really want to remove this device?" );
+		$( "#messagebox" ).find( "button[name='yesbutton']" ).off( "click.msg" ).on( "click.msg", function(){
+			$.ajax({
+				type: "delete",
+				url: moddev+ID,
+				dataType: "json",
+				success: function(data){
+					$( "#"+ID ).fadeOut("slow",function(){$("#"+ID).remove();});
+					$( "#messagebox" ).modal("hide");
+				},
+				error: function(){
+					alert( "HTTP request fail." );
+				}
+			});
+		});
+		$( "#messagebox" ).find( "button[name='nobutton']" ).off( "click.msg" ).on( "click.msg", function(){$("#messagebox").modal("hide");});
+		$( "#messagebox" ).modal();
+		event.stopPropagation();
+	});
+
 	$( "#listitem button[name='edit']" ).click( function( event ){
 		var ID = $( this ).parent().parent().find( "span[name='DeviceID']" ).html();
 		var name = $( this ).parent().parent().find( "span[name='DeviceName']" ).html();
-		var desc = $( this ).parent().parent().find( "span[name='Description']" ).html();
+		var desc = $( this ).parent().parent().find( "p[name='Description']" ).html();
 		$( "#moreinfo input[name='DeviceID']" ).val( ID );
 		$( "#moreinfo input[name='DeviceName']" ).val( name );
-		$( "#moreinfo input[name='Description']" ).val( desc );
+		$( "#moreinfo textarea[name='Description']" ).val( desc.trim() );
 		$( "#moreinfo" ).modal();
 		event.stopPropagation();
 	});
@@ -207,10 +249,14 @@ $(function(){
 			$(this).find( "input[name='DeviceID']" ).prop( "disabled", false );
 			$(this).find( ".glyphicon" ).show();
 			$(this).find( ".control-group:first" ).addClass( "has-success" );
+			$(this).find( "button[type='submit']" ).html( "Add" );
+			$(this).find( ".modal-title" ).html( "New Device" );
 		}else{
 			$(this).find( ".glyphicon" ).hide();
 			$(this).find( ".control-group:first" ).removeClass("has-success");
 			$(this).find( "input[name='DeviceID']" ).prop( "disabled", true );
+			$(this).find( "button[type='submit']" ).html( "Submit" );
+			$(this).find( ".modal-title" ).html( "Device "+$(this).find("input[name='DeviceName']").val() );
 		}
 	});
 	function checkID(){
@@ -238,6 +284,33 @@ $(function(){
 	}
 	$( "#moreinfo input[name='DeviceID']" ).change( checkID );
 	$( "#moreinfo input[name='DeviceID']" ).bind( "paste", function(){ setTimeout( checkID, 20 ); });
+	$( "#moreinfo form" ).submit( function(){
+		var DeviceID = $("#moreinfo input[name='DeviceID']").val();
+		var DeviceName = $( "#moreinfo input[name='DeviceName']" ).val();
+		var Description = $( "#moreinfo textarea[name='Description']" ).val();
+		var tmp = { ID:DeviceID, Name:DeviceName, Description:Description };
+		if( $("#moreinfo input[name='DeviceID']").prop("disabled") ) tmp.stat = "mod";
+		else tmp.stat = "new";
+		$.ajax({
+			type: "post",
+			url: moddev+DeviceID,
+			data: JSON.stringify( tmp ),
+			contentType: "application/json",
+			dataType: "json",
+			success: function( data ){
+				if( data.stat == "OK" ){
+					update();
+					$("#moreinfo").modal("hide");
+				}else{
+					alert( "Fail..." );
+				}
+			},
+			error: function(){
+				alert( "HTTP request fail." );
+			}
+		});
+		return false;
+	});
 
 });
 </script>
@@ -256,8 +329,8 @@ $(function(){
 	font-size: 2em;
 }
 .listitems {
-	width:120px;
-	height:120px;
+	width:240px;
+	height:100px;
 }
 </style>
 {% endblock %}
