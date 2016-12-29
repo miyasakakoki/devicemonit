@@ -172,7 +172,9 @@ def mod_device( DeviceID ):
 @app.route( "/api/device/<DeviceID>", methods=["DELETE"] )
 @login_required
 def del_device( DeviceID ):
-	getdb().cursor().execure( "delete from devices where did = ?;", (DeviceID,) )
+	db = getdb()
+	db.execute( "delete from devices where did = ?;", (DeviceID,) )
+	db.commit()
 	return jsonify( {"stat":"OK"} )
 
 @app.route( "/signup", methods=["GET"] )
