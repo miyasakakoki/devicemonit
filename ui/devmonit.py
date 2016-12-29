@@ -162,12 +162,18 @@ def check_device_id():
 @app.route( "/api/device/<DeviceID>", methods=["POST"] )# To Do "edit api"
 @login_required
 def mod_device( DeviceID ):
-	if checkdeviceid(DeviceID):
+	if request.json["stat"] == "new":
+		if checkdeviceid(DeviceID):
+			db = getdb()
+			db.execute( "insert into devices( uid, did, Name, Description ) values(?,?,?,?);", (session["uid"], DeviceID, request.json["Name"], request.json["Description"] ) )
+			db.commit()
+			return jsonify( {"stat":"OK"} )
+		return jsonify( {"stat":"NG"} )
+	else:
 		db = getdb()
-		db.execute( "insert into devices( uid, did, Name, Description ) values(?,?,?,?);", (session["uid"], DeviceID, request.json["Name"], request.json["Description"] ) )
+		db.execute( "update devices set Name = ?, Description = ? where did = ?;", (request.json["Name"], request.json["Description"], DeviceID ) )
 		db.commit()
 		return jsonify( {"stat":"OK"} )
-	return jsonify( {"stat":"NG"} )
 
 @app.route( "/api/device/<DeviceID>", methods=["DELETE"] )
 @login_required

@@ -127,8 +127,8 @@ $(function(){
 						else if( devlist[i].Stat == "NG" ) $( "#"+id ).addClass( "list-group-item-danger" );
 						$( "#"+id ).find( "span[name='DeviceName']" ).empty().append( devlist[i].Name );
 						$( "#"+id ).find( "span[name='Status']" ).empty().append( devlist[i].Stat );
-						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( "yyyy/mm/dd hh:mm:ss" );
-						$( "#"+id ).find( "p[name='Description']" ).empty().append( "Hoge Fuga TTTT" );
+						$( "#"+id ).find( "span[name='HeartTime']" ).empty().append( devlist[i].time );
+						$( "#"+id ).find( "p[name='Description']" ).empty().append( devlist[i].Description );
 						if( devlist[i].Stat != "OK" ) $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-heart" ).addClass( "glyphicon-alert" );
 						else $( "#"+id ).find( "span[name='icon']" ).removeClass( "glyphicon-alert" ).addClass( "glyphicon-heart" );
 					}else{//Append item
