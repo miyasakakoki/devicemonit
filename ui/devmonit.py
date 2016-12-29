@@ -4,6 +4,7 @@ from flask import Flask, request, g, send_from_directory, render_template, sessi
 from functools import wraps
 import sqlite3
 from influxdb import InfluxDBClient
+import string
 import os
 import datetime
 import random
@@ -64,13 +65,22 @@ def get_all( uid ):
 			rs = list(client.query( "select last(*) from {0};".format( i["did"] ), epoch="ms" ).get_points())
 			now = int(datetime.datetime.now().timestamp())
 			if len(rs) == 0:
-				tmp["stat"] = "NG"
+				tmp["Stat"] = "NG"
 				tmp["time"] = "0"
 			else:
 				tmp["time"] = datetime.datetime.fromtimestamp( rs[0]["time"] ).strftime( "%Y/%m/%d %H:%M:%S" )
-				tmp["stat"] = "NG" if rs[0].time() < now-65 else "OK"
+				tmp["Stat"] = "NG" if rs[0].time() < now-65 else "OK"
 			ret.append( tmp )
 	return ret
+
+def checkdeviceid( did ):
+	if did == None or len(did) < 8:
+		return False
+	for c in did:
+		if c not in string.ascii_letters and c not in string.digits and c not in "_#":
+			return False
+	r = getdb().execute( "select * from devices where did = ?;", (did,) ).fetchone()
+	return False if r is not None else True
 
 def login_required(f):
 	@wraps(f)
@@ -132,7 +142,7 @@ def dashboard_page():
 @app.route( "/api/device/all" )
 @login_required
 def devicestatus_all():
-	return jsonify( { "Devices": get_all( session["uid"] ), "Time": session["Date"].strftime( "%Y/%m/%d %H:%M:%S" ) } )
+	return jsonify( { "devices": get_all( session["uid"] ), "Time": session["Date"].strftime( "%Y/%m/%d %H:%M:%S" ) } )
 
 @app.route( "/api/deviceID"	, methods=["GET"] )
 @login_required
@@ -140,22 +150,24 @@ def gen_device_id():
 	while True:
 		tmp = "".join( random.SystemRandom().choice( string.ascii_letters + string.digits ) for _ in range(16) )
 		result = getdb().cursor().execute( "select * from devices where did = ?;", (tmp,) ).fetchone()
-		break if result == None
+		if result == None:
+			break;
 	return jsonify( {"ID":tmp} )
 
 @app.route( "/api/deviceID" , methods=["POST"] )
 @login_required
 def check_device_id():
-	result = getdb().cursor().execute( "select * from devices where did = ?;",(request.json["ID"],) ).fetchone()
-	return jsonify( {"stat":"OK" if result == None else "NG"} )
+	return jsonify( { "stat": "OK" if checkdeviceid( request.json["ID"] ) else "NG" } )
 
 @app.route( "/api/device/<DeviceID>", methods=["POST"] )# To Do "edit api"
 @login_required
 def mod_device( DeviceID ):
-	if dict(check_device_id())["stat"] == "OK":
-		getdb().cursor().execute( "insert into devices( uid, did, Name, Descriotion ) values(?,?,?,?);", (session["uid"], request.json["ID"], request.json["Name"], request.json["Description"] ) )
+	if checkdeviceid(DeviceID):
+		db = getdb()
+		db.execute( "insert into devices( uid, did, Name, Description ) values(?,?,?,?);", (session["uid"], DeviceID, request.json["Name"], request.json["Description"] ) )
+		db.commit()
 		return jsonify( {"stat":"OK"} )
-	return jsonify( {"stat":"NG"} ) 
+	return jsonify( {"stat":"NG"} )
 
 @app.route( "/api/device/<DeviceID>", methods=["DELETE"] )
 @login_required
