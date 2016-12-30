@@ -62,14 +62,14 @@ def get_all( uid ):
 	if result is not None:
 		for i in result:
 			tmp = { "ID": i["did"], "Name": i["Name"], "Description": i["Description"] }
-			rs = list(client.query( "select last(*) from {0};".format( i["did"] ), epoch="ms" ).get_points())
+			rs = list(client.query( "select last(*) from \"{0}\";".format( i["did"] ), epoch="s" ).get_points())
 			now = int(datetime.datetime.now().timestamp())
-			if len(rs) == 0:
+			if len(rs) == 0 or rs[0]["time"] == 0:
 				tmp["Stat"] = "NG"
 				tmp["time"] = "0"
 			else:
 				tmp["time"] = datetime.datetime.fromtimestamp( rs[0]["time"] ).strftime( "%Y/%m/%d %H:%M:%S" )
-				tmp["Stat"] = "NG" if rs[0].time() < now-65 else "OK"
+				tmp["Stat"] = "NG" if rs[0]["time"] < now-65 else "OK"
 			ret.append( tmp )
 	return ret
 
@@ -169,7 +169,7 @@ def mod_device( DeviceID ):
 			db.commit()
 			ifdb = app.config["INFLUXDB"]
 			client = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
-			client.write_points( [{"measurement":DeviceID, "tags":{}, "time":"0", "fields":{"Stat":"None"}}] )
+			client.write_points( [{"measurement":DeviceID, "tags":{}, "time":0, "fields":{"Stat":"None"}}] )
 			return jsonify( {"stat":"OK"} )
 		return jsonify( {"stat":"NG"} )
 	else:
