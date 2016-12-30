@@ -186,7 +186,7 @@ def del_device( DeviceID ):
 	db.commit()
 	ifdb = app.config["INFLUXDB"]
 	client = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
-	client.query( "Drop measurement {0};".format( DeviceID ) )
+	client.query( "Drop measurement \"{0}\";".format( DeviceID ) )
 	return jsonify( {"stat":"OK"} )
 
 @app.route( "/signup", methods=["GET"] )
