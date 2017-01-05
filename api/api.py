@@ -47,6 +47,8 @@ class MyAPI( object ):
 		else:
 			res.body = "{ \"stat\":\"OK\", \"time\": \"{0}\" }".format( int(time.time()) )
 	def dbwrite( json, id, meth ):
+		if len( id ) < 8:
+			return "notfound"
 		cli = InfluxDBClient( host, port, user, password, dbname )
 		ret = cli.query( "show measurements with measurement = {0};".format(id) )
 		if len(ret.raw) < 1:
