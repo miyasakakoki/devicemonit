@@ -62,14 +62,14 @@ def get_all( uid ):
 	if result is not None:
 		for i in result:
 			tmp = { "ID": i["did"], "Name": i["Name"], "Description": i["Description"] }
-			rs = list(client.query( "select last(*) from {0};".format( i["did"] ), epoch="ms" ).get_points())
+			rs = list(client.query( "select last(*) from \"{0}\";".format( i["did"] ), epoch="s" ).get_points())
 			now = int(datetime.datetime.now().timestamp())
-			if len(rs) == 0:
+			if len(rs) == 0 or rs[0]["time"] == 0:
 				tmp["Stat"] = "NG"
 				tmp["time"] = "0"
 			else:
 				tmp["time"] = datetime.datetime.fromtimestamp( rs[0]["time"] ).strftime( "%Y/%m/%d %H:%M:%S" )
-				tmp["Stat"] = "NG" if rs[0].time() < now-65 else "OK"
+				tmp["Stat"] = "NG" if rs[0]["time"] < now-65 else "OK"
 			ret.append( tmp )
 	return ret
 
@@ -159,7 +159,7 @@ def gen_device_id():
 def check_device_id():
 	return jsonify( { "stat": "OK" if checkdeviceid( request.json["ID"] ) else "NG" } )
 
-@app.route( "/api/device/<DeviceID>", methods=["POST"] )# To Do "edit api"
+@app.route( "/api/device/<DeviceID>", methods=["POST"] )
 @login_required
 def mod_device( DeviceID ):
 	if request.json["stat"] == "new":
@@ -167,6 +167,9 @@ def mod_device( DeviceID ):
 			db = getdb()
 			db.execute( "insert into devices( uid, did, Name, Description ) values(?,?,?,?);", (session["uid"], DeviceID, request.json["Name"], request.json["Description"] ) )
 			db.commit()
+			ifdb = app.config["INFLUXDB"]
+			client = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
+			client.write_points( [{"measurement":DeviceID, "tags":{}, "time":0, "fields":{"Stat":"None"}}] )
 			return jsonify( {"stat":"OK"} )
 		return jsonify( {"stat":"NG"} )
 	else:
@@ -181,6 +184,9 @@ def del_device( DeviceID ):
 	db = getdb()
 	db.execute( "delete from devices where did = ?;", (DeviceID,) )
 	db.commit()
+	ifdb = app.config["INFLUXDB"]
+	client = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
+	client.query( "Drop measurement \"{0}\";".format( DeviceID ) )
 	return jsonify( {"stat":"OK"} )
 
 @app.route( "/signup", methods=["GET"] )
