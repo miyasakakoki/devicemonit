@@ -27,7 +27,8 @@ class MyAPI( object ):
 	def on_post( self, req, res, id ):
 		if len(id) < 8:
 			raise falcon.HTTPNotFound()
-		data = json.loads( req.stream.read() )
+		buf = req.stream.read()
+		data = json.loads( buf.decode('utf-8') )
 		if not( "seq" in data and "stat" in data ):
 			raise falcon.HTTPNotAccepted()
 		cli = InfluxDBClient( host, port, user, password, dbname )
