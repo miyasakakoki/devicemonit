@@ -190,6 +190,18 @@ def del_device( DeviceID ):
 	client.query( "Drop measurement \"{0}\";".format( DeviceID ) )
 	return jsonify( {"stat":"OK"} )
 
+@app.route( "/api/device/<DeviceID>/power", methods=["POST"] )
+@login_required
+def power( DeviceID ):
+	db = getdb()
+	ret = db.execute( "select * from Devices where did = ?;",(DeviceID,) ).fetchone()
+	if len( ret ) < 1:
+		return jdonify( {"stat":"NG"} )
+	#check last command
+	#check reboot ot power off
+	#write command
+	return jsonify( {"stat":"OK"} )
+	
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
 	return render_template( 'signup.html' )
