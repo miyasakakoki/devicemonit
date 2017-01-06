@@ -41,8 +41,15 @@ class MyAPI( object ):
 			lasttime -= 60
 		tmp.append( {"measurement":id, "tags":{}, "time":now*1000000000, "fields":{"Stat":"OK"}} )
 		cli.write_points( tmp )
+		#check command
+		ret=cli.query( "select * from \"{0}\" where 'type' = 'command';".format( id ) )
+		if len( ret.raw ) > 0:
+			com = ret.raw[0]["command"]
+			cli.query( "delete from \"{0}\" where 'type' = 'command';".format(id) )
+		else:
+			com = ""
 		res.status = falcon.HTTP_200
-		res.body = str( {"stat":"OK", "time":now, "debug":debugp } )
+		res.body = str( {"stat":"OK", "time":now, "command":com, "debug":debugp } )
 		res.content_type= "application/json"
 app = falcon.API()
 app.add_route( '/{id}', MyAPI() )
