@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 seq=0
 if cat log 2>/dev/null 1>/dev/null; then
 	log=`cat log`

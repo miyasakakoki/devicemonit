@@ -53,7 +53,6 @@ class MyAPI( object ):
 		res.status = falcon.HTTP_200
 		res.body = '{"stat":"OK", "time":{0} }'.format( now )
 		res.content_type= "application/json"
-
 app = falcon.API()
 app.add_route( '/{id}', MyAPI() )
 
