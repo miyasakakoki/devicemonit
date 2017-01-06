@@ -36,7 +36,7 @@ class MyAPI( object ):
 		if len( ret.raw ) < 1:
 			raise falcon.HTTPNotFound()
 		if "log" in data:
-			if "seq" in data["log"]:
+			if "seq" in data["log"] and data["log"]["seq"] != 0:
 				ret = cli.query( "select last(time) from \"{0}\";".format( id ) ) #Get last timestamp
 				if len( ret.raw ) > 0:
 					lasttime = int(ret.raw[0]["time"])
