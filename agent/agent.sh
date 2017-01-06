@@ -9,7 +9,8 @@ fi
 while true; do
 	dat=`echo "{\"seq\":${seq}, \"stat\":\"OK\", \"log\":{\"seq\":${log}}}"`
 	echo $dat
-	if curl -X POST -d "${dat}" http://${1}/${2} -sS -m 1 -H "Accept: application/json" -H "Content-type: application/json"; then
+	tmp=`curl -X POST -d "${dat}" http://${1}/${2} -sS -m 1 -H "Accept: application/json" -H "Content-type: application/json"`
+	if [ $? eq 0 ]; then
 		seq=0
 		rm log 2> /dev/null
 	else
@@ -18,7 +19,13 @@ while true; do
 			echo ${seq}>log
 		fi
 	fi
-	sleep 30
+	cmd=`echo ${tmp} | sed "s/^.*\"command\" ?: ?\"\(.*\)\".*$/%1/g"`
+	if [ $cmd -eq "shutdown" ]; then
+		shutdown -h now
+	elif [ $cmd -eq "reboot" ]; then
+		reboot
+	fi
+	sleep 60
 done
 
 
