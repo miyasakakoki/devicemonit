@@ -199,7 +199,7 @@ def power( DeviceID ):
 		return jdonify( {"stat":"NG"} )
 	ifdb = app.config["INFLUXDB"]
 	cli = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
-	ret = cli.query( "select command from \"{0}\" where 'type' = 'command';" )
+	ret = cli.query( "select command from \"{0}\" where 'type' = 'command';".format(DeviceID) )
 	if len( ret.raw ) > 0:
 		return jsonify( {"stat":"NG"} )
 	com = request.json["command"]
