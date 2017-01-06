@@ -69,6 +69,7 @@ def get_all( uid ):
 				tmp["time"] = "0"
 			else:
 				tmp["time"] = datetime.datetime.fromtimestamp( rs[0]["time"] ).strftime( "%Y/%m/%d %H:%M:%S" )
+				print( tmp["time"] )
 				tmp["Stat"] = "NG" if rs[0]["time"] < now-65 else "OK"
 			ret.append( tmp )
 	return ret
