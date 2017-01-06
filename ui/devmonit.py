@@ -197,9 +197,14 @@ def power( DeviceID ):
 	ret = db.execute( "select * from Devices where did = ?;",(DeviceID,) ).fetchone()
 	if len( ret ) < 1:
 		return jdonify( {"stat":"NG"} )
-	#check last command
-	#check reboot ot power off
-	#write command
+	ifdb = app.config["INFLUXDB"]
+	cli = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
+	ret = cli.query( "select command from \"{0}\" where 'type' = 'command';" )
+	if len( ret.raw ) > 0:
+		return jsonify( {"stat":"NG"} )
+	com = request.json["command"]
+	if com == "shutdown" or com == "reboot":
+		cli.write_points( [{ "measurement":DeviceID, "tags":{"type":"command"}, "time":0, "fields":{"value":com} }] )
 	return jsonify( {"stat":"OK"} )
 	
 @app.route( "/signup", methods=["GET"] )
