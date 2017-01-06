@@ -24,30 +24,35 @@ def dbwrite( client, measurement, value, tag ):
 	
 
 class MyAPI( object ):
-	def on_get( self, req, res, id ):
-		#Connect to Database
-		cli = InfluxDBClient( host, port, user, password, dbname )
-		if not existdevice( cli, id ):
-			raise falcon.HTTPNotFound()
-		if not dbwrite( cli, id, 1, {"stat":"up"} ):
-			print("miss1")
-		res.status = falcon.HTTP_200
-		res.body = '{"stat":"ok"}'
-		res.content_type = 'application/javascript'
-	
 	def on_post( self, req, res, id ):
-		cli = InfluxDBClient( host, port, user, password, dbname )
-		if not existdevice( cli, id ):
+		if len(id) < 8:
 			raise falcon.HTTPNotFound()
 		data = json.loads( req.stream.read() )
-		if "num" not in data or type(data["num"]) is not int:
+		if not( "seq" in data and "stat" in data ):
+			raise falcon.HTTPNotAccepted()
+		cli = InfluxDBClient( host, port, user, password, dbname )
+		ret = cli.query( "show measurements with measurement =\"{0}\";".format( id ) )
+		tmp = []
+		if len( ret.raw ) < 1:
 			raise falcon.HTTPNotFound()
-		if not dbwrite( cli, id, data["num"], {} ):
-			print("miss2")
+		if "log" in data:
+			if "seq" in data["log"]:
+				ret = cli.query( "select last(time) from \"{0}\";".format( id ) ) #Get last timestamp
+				if len( ret.raw ) > 0:
+					lasttime = int(ret.raw[0]["time"])
+					for i in range(data["log"]["seq"]):
+						lasttime += 60
+						tmp.append( {"measurement":id, "tags":{}, "time":lasttime, "fields":{"value":"NC"}} )
+		now = int(time.time())
+		lasttime = now-60
+		for i in range( data["seq"] ):
+			tmp.append( {"measurement":id, "tags":{},"time":lasttime, "fields":{"value":"NC"}} )
+			lasttime -= 60
+		tmp.append( {"measurement":id, "tags":{}, "time":now, "fields":{"value":"OK"}} )
+		cli.write_points( tmp )
 		res.status = falcon.HTTP_200
-		res.content_type = 'application/javascript'
-		res.body = '{"stat":"ok"}'
-
+		res.body = '{"stat":"OK", "time":{0} }'.format( now )
+		res.content_type= "application/json"
 
 app = falcon.API()
 app.add_route( '/{id}', MyAPI() )
