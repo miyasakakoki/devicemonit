@@ -42,10 +42,10 @@ class MyAPI( object ):
 		tmp.append( {"measurement":id, "tags":{}, "time":now*1000000000, "fields":{"Stat":"OK"}} )
 		cli.write_points( tmp )
 		#check command
-		ret=cli.query( "select * from \"{0}\" where 'type' = 'command';".format( id ) )
+		ret=cli.query( "select value from \"{0}\" where type = 'command';".format( id ) )
 		if len( ret.raw ) > 0:
-			com = ret.raw[0]["command"]
-			cli.query( "delete from \"{0}\" where 'type' = 'command';".format(id) )
+			com = ret.raw[0]["value"]
+			cli.query( "delete from \"{0}\" where type = 'command';".format(id) )
 		else:
 			com = ""
 		res.status = falcon.HTTP_200
