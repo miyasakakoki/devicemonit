@@ -69,7 +69,6 @@ def get_all( uid ):
 				tmp["time"] = "0"
 			else:
 				tmp["time"] = datetime.datetime.fromtimestamp( rs[0]["time"] ).strftime( "%Y/%m/%d %H:%M:%S" )
-				print( tmp["time"] )
 				tmp["Stat"] = "NG" if rs[0]["time"] < now-65 else "OK"
 			ret.append( tmp )
 	return ret
@@ -196,15 +195,14 @@ def power( DeviceID ):
 	db = getdb()
 	ret = db.execute( "select * from Devices where did = ?;",(DeviceID,) ).fetchone()
 	if len( ret ) < 1:
-		return jdonify( {"stat":"NG"} )
+		return jsonify( {"stat":"NG"} )
 	ifdb = app.config["INFLUXDB"]
 	cli = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
-	ret = cli.query( "select command from \"{0}\" where 'type' = 'command';".format(DeviceID) )
-	if len( ret.raw ) > 0:
+	ret = cli.query( "select value from \"{0}\" where type = 'command';".format(DeviceID) )
+	if len( ret.raw ) > 0 or "command" not in request.json:
 		return jsonify( {"stat":"NG"} )
-	com = request.json["command"]
-	if com == "shutdown" or com == "reboot":
-		cli.write_points( [{ "measurement":DeviceID, "tags":{"type":"command"}, "time":0, "fields":{"value":com} }] )
+	if request.json["command"] == "shutdown" or request.json["command"] == "reboot":
+		cli.write_points( [{ "measurement":DeviceID, "tags":{"type":"command"}, "time":0, "fields":{"value":request.json["command"]} }] )
 	return jsonify( {"stat":"OK"} )
 	
 @app.route( "/signup", methods=["GET"] )

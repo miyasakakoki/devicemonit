@@ -311,7 +311,8 @@ $(function(){
 		});
 		return false;
 	});
-	$( "#listitem button[name='shutdown']" ).click( function(){
+	$( ".listitems button[name='shutdown']" ).click( function(event){
+		var DeviceID = $(this).parent().find( "span[name='DeviceID']" ).html();
 		$.ajax({
 			type: "post",
 			url: moddev+DeviceID+"/power",
@@ -330,12 +331,14 @@ $(function(){
 				alert( "HTTP request fail." );
 			}
 		});
+		event.stopPropagation();
 	});
-	$( "#listitem button[name='reboot']" ).click( function(){
+	$( ".listitems button[name='reboot']" ).click( function(event){
+		var DeviceID = $(this).parent().find( "span[name='DeviceID']" ).html();
 		$.ajax({
 			type: "post",
 			url: moddev+DeviceID+"/power",
-			data: JSON.stringify( { commad:"reboot" } ),
+			data: JSON.stringify( { command:"reboot" } ),
 			contentType: "application/json",
 			dataType: "json",
 			success: function( data ){
@@ -349,6 +352,7 @@ $(function(){
 				alert( "HTTP request fail." );
 			}
 		});
+		event.stopPropagation();
 	});
 });
 </script>
