@@ -62,7 +62,7 @@ def get_all( uid ):
 	if result is not None:
 		for i in result:
 			tmp = { "ID": i["did"], "Name": i["Name"], "Description": i["Description"] }
-			rs = list(client.query( "select last(*) from \"{0}\";".format( i["did"] ), epoch="s" ).get_points())
+			rs = list(client.query( "select last(Stat) from \"{0}\" where type <> 'command';".format( i["did"] ), epoch="s" ).get_points())
 			now = int(datetime.datetime.now().timestamp())
 			if len(rs) == 0 or rs[0]["time"] == 0:
 				tmp["Stat"] = "NG"
@@ -198,13 +198,14 @@ def power( DeviceID ):
 		return jsonify( {"stat":"NG"} )
 	ifdb = app.config["INFLUXDB"]
 	cli = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
-	ret = cli.query( "select value from \"{0}\" where type = 'command';".format(DeviceID) )
-	if len( ret.raw ) > 0 or "command" not in request.json:
+	ret = list(cli.query( "select last(Stat) from \"{0}\";".format(DeviceID) ))[0]
+	if ret[0]['last'] != "NC" and ret[0]['last'] != "OK":
 		return jsonify( {"stat":"NG"} )
-	if request.json["command"] == "shutdown" or request.json["command"] == "reboot":
-		cli.write_points( [{ "measurement":DeviceID, "tags":{"type":"command"}, "time":0, "fields":{"value":request.json["command"]} }] )
-	return jsonify( {"stat":"OK"} )
-	
+	else:
+		if request.json["command"] == "shutdown" or request.json["command"] == "reboot":
+			cli.write_points( [{"measurement":DeviceID,"tags":{"type":"command"},"time":int(datetime.datetime.now().timestamp())*1000000000, "fields":{"Stat":request.json["command"]}}] )
+		return jsonify( {"stat":"OK"} )
+
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
 	return render_template( 'signup.html' )
