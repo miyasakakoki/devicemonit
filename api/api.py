@@ -2,6 +2,7 @@
 
 import falcon
 from influxdb import InfluxDBClient
+import MYSQLdb
 import time
 import json
 
@@ -10,6 +11,18 @@ port=8086
 user='test'
 password='mytestuser'
 dbname='devicemonit'
+
+def test():
+	con = MYSQLdb.connect(
+		user='UserName',
+		passwd='Password',
+		host='localhost',
+		db='dbname'
+	);
+	cur = con.cursor()
+	cur.execurte()
+	cur.close()
+	con.close()
 
 class MyAPI( object ):
 	def on_post( self, req, res, id ):
@@ -28,7 +41,7 @@ class MyAPI( object ):
 		if "log" in data:
 			if "seq" in data["log"] and data["log"]["seq"] != 0:
 				ret = cli.query( "select last(*) from \"{0}\";".format( id ), epoch="s" ) #Get last timestamp
-				debugp += str(ret)
+				print( list( ret ) )
 				if len( ret.raw ) > 0:
 					lasttime = int(ret.raw[0]["time"])
 					for i in range(data["log"]["seq"]):
