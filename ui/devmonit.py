@@ -139,6 +139,11 @@ def logout():
 def dashboard_page():
 	return render_template( 'dashboard.html', page="summary" )
 
+@app.route( "/devicelog", methods=["GET"] )
+@login_required
+def devicelog_page():
+	return render_template( 'devicelog.html', page="devicelog" )
+
 @app.route( "/api/device/all" )
 @login_required
 def devicestatus_all():
