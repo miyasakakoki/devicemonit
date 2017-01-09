@@ -4,109 +4,25 @@
 	<h1>Devices Log</h1>
 	<button id="update" class="btn btn-info btn-md"><span class="glyphicon glyphicon-repeat"></span>&nbsp;Reload</button>&nbsp;Last Reload:<span id="updatetime"></span>
 	<button id="toggleview" class="btn btn-info btn-md pull-right">Small</button>
-	<div class="list-group" id="list">
-		<a href="#" id="plus" class="list-group-item list-group-item-action " data-toggle="modal" data-target="#moreinfo" data-whatever="add" ><span class="glyphicon glyphicon-plus"></span></a>
-	</div>
-</div>
-
-
-<!-- for add and mod device-->
-<div class="modal fade" id="moreinfo" tabindex="-1" >
-	<div class="modal-dialog modal-md">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title">Add Device</h4>
-			</div>
-			<div class="modal-body">
-				<form class="form-horizontal" >
-					<div class="control-group has-success has-feedback">
-						<label class="control-label" for="DeviceID">DeviceID</label>
-						<div class="controls">
-							<input name="DeviceID" class="form-control" type="text" placeholder="Device-ID" required="" />
-							<span class="glyphicon glyphicon-ok form-control-feedback"></span>
-						</div>
-					</div>
-					<div class="control-group">
-						<label for="DeviceName">Device-Name</label>
-						<div class="controls">
-							<input name="DeviceName" class="form-control" type="text" placeholder="Device Name" required="" />
-						</div>
-					</div>
-					<div class="control-group">
-						<label for="Description">Descritption</label>
-						<div class="controls">
-							<textarea rows="10" name="Description" class="form-control"></textarea>
-						</div>
-					</div>
-					<div class="control-group">
-						<div class="controls">
-							<button class="btn btn-default" data-dismiss="modal">Cansel</button>
-							<button class="btn btn-default" type="submit">Add</button>
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-</div>
-
-<!-- for messagebox -->
-<div class="modal fade" id="messagebox" tabindex="-1" >
-	<div class="modal-dialog modal-sm">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title"></h4>
-			</div>
-			<div class="modal-body">
-			</div>
-			<div class="modal-footer">
-				<button name="yesbutton" class="btn btn-default">Yes</button>
-				<button name="nobutton" class="btn btn-default">No</button>
-			</div>
-		</div>
-	</div>
+	<ol class="list-group" id="list">
+	</ol>
 </div>
 
 <div style="display:none">
-	<a href="#" id="listitem" class="list-group-item list-group-itemaction listitems">
-		<div class="list-group-item-text">
-			<h4><span name="DeviceName"></span></h4>
-			Now:&nbsp;<span name="Status"></span><br />
-			(<span name="HeartTime"></span>)<br />
-			DeviceID;&nbsp;<span name="DeviceID"></span>
+	<li href="#" id="listitem" class="list-group-item clearfix col-md-12">
+		<div style="float:left" class="col-md-2 col-sm-3 col-xs-4 normalshow">
+			Name:&nbsp;<span name="DeviceName"></span><br />
+			ID:&nbsp;<span name="DeviceID"></span><br />
+			Status:&nbsp;<span name="Status"></span>(<span name="HeartTime"></span>)<br />
+			Uptime:&nbsp;<span name="Uptime">xx day xx:xx:xx </span><br />
 		</div>
-		<div class="list-group-item-text">
-			
+		<div style="float:left; display:none" class="col-md-2 col-sm-3 col-xs-4 smallshow">
+			<span name="DeviceName"></span>(<span name="DeviceID"></span>)
 		</div>
-		<h4 class="list-group-item-heading smallshow">
-			<span name="DeviceName"></span><span name="icon" class="glyphicon glyphicon-heart pull-right"</span>
-		</h4>
-		<h3 class="list-group-item-heading normalshow">
-			<span name="DeviceName"></span>
-		</h3>
-		<h3 class="list-group-item-heading moreshow">
-			<span name="DeviceName"></span>
-			<button name="edit" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-edit"></span></button>
-			<button name="remove" class="btn btn-default pull-right"><span class="glyphicon glyphicon-trash"></span></button>
-		</h3>
-
-		<div class="list-group-item-text normalshow" style="text-align:center">
-			<span name="Status"></span><br />
-			@<span name="HeartTime"></span>
+		<div style="float:right" class="col-md-10 col-sm-9 col-xs-8">
+			<textarea name="log"></textarea>
 		</div>
-		<div class="list-group-item-text moreshow">
-			DeviceID:&nbsp;<span name="DeviceID"></span><br />
-			Now Status:&nbsp;<span name="Status"></span>&nbsp;(At <span name="HeartTime"></span>)<br />
-			Description:<br />
-			<p name="Description">
-			</p>
-			Commands:
-			<button class="btn btn-default" name="reboot"><span class="glyphicon glyphicon-refresh"></span></button>
-			<button class="btn btn-default" name="shutdown"><span class="glyphicon glyphicon-off"></span></button>
-		</div>
-	</a>
+	</li>
 </div>
 {% endblock %}
 
@@ -114,6 +30,88 @@
 
 {% block script %}
 <script>
+$(function(){
+	function update(){
+		$( "#update" ).prop( "disabled", true );
+		$.ajax({
+			type: "get",
+			url: "{{ url_for("devicestatus_all") }}",
+			dataType: "json",
+			success: function( data ){
+				var dl = data.devices;
+				for( var i in dl ){
+					var id = dl[i].ID;
+					if( $( '#'+id ).length ){ //Update Item
+						$( '#'+id ).find("span[name='DeviceName']").html( dl[i].Name );
+						$( '#'+id ).find("span[name='DeviceID']").html( dl[i].ID );
+						$( '#'+id ).find("span[name='Status']").html( dl[i].Status );
+						$( '#'+id ).find("span[name='HeartTime']").html( dh[i].time );
+					}else{	//Append Item
+						var item = $( "#listitem" ).clone( true );
+						item.attr( "id", dl[i].ID );
+						item.find( "span[name='DeviceName']" ).html( dl[i].Name );
+						item.find( "span[name='DeviceID']" ).html( dl[i].ID );
+						item.find( "span[name='Status']" ).html( dl[i].Status );
+						item.find( "span[name='HeartTime']" ).html( (dl[i].time==0?"No Data":dl[i].time) );
+						$( "#list" ).append( item );
+					}
+					$.ajax({
+						type: "get",
+						url: "{{ url_for("devicelog",DeviceID="") }}".replace('//','/'+id+'/'),
+						dataType: "json",
+						success: function( data ){
+							var txt = "";
+							for( i in data.data ) txt += data.data[i].stime + " - " + data.data[i].etime + " : " + data.data[i].stat + "\n";
+							$( "#"+data.ID+" textarea[name='log']" ).val( txt );
+						},
+						error: function(){
+							alert("HTTP request fail...");
+						}
+					});
+				}
+			},
+			error: function(){
+				alert( "HTTP request fail..." );
+			}
+		});
+	}
+	update();
+});	
+
+var chart = c3.generate({
+    data: {
+        x:"x",
+        xFormat: '%Y-%m-%d %H:%M:%S',
+        columns: [
+            [
+                'x',
+                '2013-01-01 00:10:00',
+                '2013-01-01 00:11:00',
+                '2013-01-01 00:12:00',
+                '2013-01-01 00:13:00',
+                '2013-01-01 00:14:00',
+                '2013-01-01 00:15:00'
+            ],
+            ['data2', 2,2,0,1,1,2]
+        ]
+    },
+    axis: {
+        x: { type: 'timeseries', tick:{ format: "%Y-%m-%d %H:%M:%S" } },
+        y: { max:2, tick:{
+                format: function(d){
+                    switch( d ){
+                        case 0: return "NG";
+                        case 1: return "NC";
+                        case 2: return "OK";
+                        default: return "";
+                    }
+                },
+                values:[0,1,2]
+         } }
+    }
+});
+</script>
+<!--script>
 var devstaturl = "{{ url_for("devicestatus_all") }}";
 var devid = "{{ url_for("gen_device_id") }}";
 var moddev = "{{ url_for("mod_device",DeviceID="") }}";
@@ -360,24 +358,15 @@ $(function(){
 		});
 	});
 });
-</script>
+</script-->
 {% endblock%}
 
 
 
 {% block style %}
 <style>
-.list-group>a {
-	float:left;
-	margin:10px;
-	border-radius: 5px;
-}
-.list-group>a>p>span{
-	font-size: 2em;
-}
-.listitems {
-	width:240px;
-	height:100px;
+ol > li.list-group-item {
+	margin: 10px 0px;
 }
 </style>
 {% endblock %}

@@ -211,6 +211,60 @@ def power( DeviceID ):
 			cli.write_points( [{"measurement":DeviceID,"tags":{"type":"command"},"time":int(datetime.datetime.now().timestamp())*1000000000, "fields":{"Stat":request.json["command"]}}] )
 		return jsonify( {"stat":"OK"} )
 
+@app.route( "/api/device/<DeviceID>/log", methods=["GET"] )
+@login_required
+def devicelog( DeviceID ):
+	ifdb = app.config["INFLUXDB"]
+	cli = InfluxDBClient( ifdb["HOST"], ifdb["PORT"], ifdb["USER"], ifdb["PASS"], ifdb["NAME"] )
+	ret = list( cli.query( "show measurements with measurement = \"{0}\";".format( DeviceID ) ))
+	if len( ret ) < 1:
+		return jsonify( { "data":[], "command":[], "stat": "NG" } )
+	ret = list( cli.query( "select Stat from \"{0}\" where type <> 'command';".format( DeviceID ), epoch='s' ) )[0]
+	tmp = []
+	rec = None
+	for item in ret:
+		item['time'] = int(item['time']/60)*60
+	for item in ret:
+		if rec == None:
+			if item['time'] == 0:
+				continue
+			rec = { 'stime': item['time'], 'etime': item['time'], 'stat': item['Stat'] }
+			continue
+		if rec['etime'] == item['time']:
+			continue
+		if rec['etime']+60 == item['time']:
+			if rec['stat'] == item['Stat']:
+				rec['etime'] = item['time']
+			else:
+				tmp.append( rec )
+				rec = { 'stime': item['time'], 'etime': item['time'], 'stat': item['Stat'] }
+		else:
+			tmp.append( rec )
+			tmp.append( { 'stime': rec['etime']+60, 'etime': item['time']-60, 'stat': "NG" } )
+			rec = { 'stime': item['time'], 'etime': item['time'], 'stat': item['Stat'] }
+	for item in tmp:
+		if item['stat'] == "OK":
+			item['stat'] = 2
+		elif item['stat'] == "NC":
+			item['stat'] = 1
+		else:
+			item['stat'] = 0
+	print( tmp )
+	ret = list( cli.query( "select Stat from \"{0}\" where type = 'command';".format( DeviceID ), epoch='s' ) )
+	ret = [] if len( ret ) == 0 else ret[0]
+	return jsonify( {'data':tmp, 'command':tmp, 'ID':DeviceID} )
+
+
+"""
+[
+	{'time':"yyyy/mm/dd hh/mm/ss", 'Stat':2 },
+	{'time':"yyyy/mm/dd hh/mm/ss", 'Stat':1 },
+	{'time':"yyyy/mm/dd hh/mm/ss", 'Stat':0 },
+	{'time':"yyyy/mm/dd hh/mm/ss", 'Stat':1 },
+	{'time':"yyyy/mm/dd hh/mm/ss", 'Stat':2 }
+]
+"""
+
 @app.route( "/signup", methods=["GET"] )
 def signup_page():
 	return render_template( 'signup.html' )
@@ -221,7 +275,7 @@ def signup():
 	return "OK"
 
 
-@app.route('/<path:path>')
+@app.route('/c3/<path:path>')
 def send_js(path):
 	return send_from_directory('statics', path)
 
