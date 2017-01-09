@@ -2,3 +2,7 @@
 ./venv/
 ./api/__pycache__/
 ./misc/
+misc/
+test/
+venv/
+api/memo.txt
