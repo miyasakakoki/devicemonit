@@ -30,6 +30,20 @@
 
 {% block script %}
 <script>
+Date.prototype.toString = function(){
+		var y = this.getFullYear();
+		var m = this.getMonth() + 1;
+		var d = this.getDate();
+		var H = this.getHours();
+		var M = this.getMinutes();
+		var S = this.getSeconds();
+		if( m < 10 ) m = "0" + m;
+		if( d < 10 ) d = "0" + d;
+		if( H < 10 ) H = "0" + H;
+		if( M < 10 ) M = "0" + M;
+		if( S < 10 ) S = "0" + S;
+		return y+"/"+m+"/"+d+" "+H+":"+M+":"+S;
+}
 $(function(){
 	function update(){
 		$( "#update" ).prop( "disabled", true );
@@ -61,7 +75,23 @@ $(function(){
 						dataType: "json",
 						success: function( data ){
 							var txt = "";
-							for( i in data.data ) txt += data.data[i].stime + " - " + data.data[i].etime + " : " + data.data[i].stat + "\n";
+							for( i in data.data ){
+								var st = new Date( data.data[i].stime * 1000 );
+								var et = new Date( data.data[i].etime * 1000 );
+								txt += st.toString() + " - " + et.toString() + " :";
+								switch( data.data[i].stat ){
+									case 1:
+										txt += "NC";
+										break;
+									case 2:
+										txt += "OK";
+										break;
+									default:
+										txt += "NG";
+										break;
+								}
+								txt+="\n";
+							}
 							$( "#"+data.ID+" textarea[name='log']" ).val( txt );
 						},
 						error: function(){
