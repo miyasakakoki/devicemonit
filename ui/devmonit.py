@@ -242,6 +242,7 @@ def devicelog( DeviceID ):
 			tmp.append( rec )
 			tmp.append( { 'stime': rec['etime']+60, 'etime': item['time']-60, 'stat': "NG" } )
 			rec = { 'stime': item['time'], 'etime': item['time'], 'stat': item['Stat'] }
+	tmp.append( rec )
 	for item in tmp:
 		if item['stat'] == "OK":
 			item['stat'] = 2
@@ -249,7 +250,6 @@ def devicelog( DeviceID ):
 			item['stat'] = 1
 		else:
 			item['stat'] = 0
-	print( tmp )
 	ret = list( cli.query( "select Stat from \"{0}\" where type = 'command';".format( DeviceID ), epoch='s' ) )
 	ret = [] if len( ret ) == 0 else ret[0]
 	return jsonify( {'data':tmp, 'command':tmp, 'ID':DeviceID} )
