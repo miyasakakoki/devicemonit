@@ -49,7 +49,32 @@ class MyAPI( object ):
 		res.status = falcon.HTTP_200
 		res.body = str( {"stat":"OK", "time":now, "command":com, "debug":debugp } )
 		res.content_type= "application/json"
+
+class Regist( object ):
+	def on_post( self, req, res, user):
+		if len(user) < 8:
+			raise falcon.HTTPNotFound()
+		if not checkuser( user ):
+			raise falcon.HTTPNotFound()
+		data = json.loads( (req.stream.read()).decode('utf-8') )
+		if "Token" not in data:
+			raise falcon.HTTPNotFound()
+		if not checktoken( data["Token"], user ):
+			raise falcon.HTTPNotFound()
+		did = registdevice( user )
+		res.status = falcon.HTTP_200
+		res.body = str( {"DeviceID":did} )
+		res.content_type = "application/json"
+	def checkuser( user ):
+		return True
+	def checktoken( token, user ):
+		return True
+	def registdevice( user ):
+		return "#####"
+
+
 app = falcon.API()
 app.add_route( '/{id}', MyAPI() )
+app.add_route( '/{user}/add', Regist()  )
 
 
